@@ -14,7 +14,7 @@ import xarray as xr
 
 def main():
     # because of how the flags are stored (units is '1b') decoding cf times fails
-    ds = xr.open_dataset('obs/bas-core_masin_20130322_r000_flight180_1hz.nc', decode_times=False)
+    ds = xr.open_dataset('obs/core_masin_20200124_r002_flight330_1hz.nc', decode_times=False)
 
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
