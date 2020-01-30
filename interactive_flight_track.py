@@ -6,6 +6,7 @@ to mark the corresponding points on both figures.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from matplotlib.collections import LineCollection
 
 import xarray as xr
@@ -13,7 +14,7 @@ import xarray as xr
 
 def main():
     # because of how the flags are stored (units is '1b') decoding cf times fails
-    ds = xr.open_dataset('bas-core_masin_20130322_r000_flight180_1hz.nc', decode_times=False)
+    ds = xr.open_dataset('obs/bas-core_masin_20130322_r000_flight180_1hz.nc', decode_times=False)
 
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
@@ -110,6 +111,11 @@ def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray'):
     # Break the xy points up in to line segments
     points = np.array([x, y]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+    # Create discretised colourmap
+    cmap_continuous = plt.get_cmap(cmap)
+    cmap_discretised = mpl.colors.ListedColormap(
+        [cmap_continuous(n/10) for n in range(11)])
 
     # Collect the line segments
     lc = LineCollection(segments, cmap=plt.get_cmap(cmap),
