@@ -21,7 +21,9 @@ def main():
     # Plot the main variable of interest
     # Change this to whatever variable you want or add additional figures here
     fig1 = plt.figure()
-    ds.TDEW_BUCK.plot()
+    ds.ROLL_OXTS.plot(linestyle='--', alpha=0.5)
+    plt.twinx()
+    ds.ALT_OXTS.plot()
     ymin, ymax = plt.gca().get_ylim()
 
     # Plot flight path with colours for altitude
@@ -37,6 +39,7 @@ def main():
     def select_interesting_point(event):
         nonlocal counter
         idx = find_nearest_point(event.xdata, 0, ds.Time, np.zeros_like(ds.Time))
+        print(idx)
         add_selected_points(idx, ds, counter, ymax)
         counter += 1
 
@@ -45,6 +48,7 @@ def main():
     def select_flight_position(event):
         nonlocal counter
         idx = find_nearest_point(event.xdata, event.ydata, ds.LON_OXTS, ds.LAT_OXTS)
+        print(idx)
         add_selected_points(idx, ds, counter, ymax)
         counter += 1
 
