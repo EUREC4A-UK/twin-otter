@@ -9,15 +9,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import LineCollection
 
-import xarray as xr
+import util
 
 
 def main():
     # because of how the flags are stored (units is '1b') decoding cf times fails
-    ds = xr.open_dataset('obs/core_masin_20200124_r002_flight330_1hz.nc', decode_times=False)
-
-    # plot as function of time
-    ds = ds.swap_dims(dict(data_point='Time'))
+    ds = util.load_flight(330)
 
     # Plot the main variable of interest
     # Change this to whatever variable you want or add additional figures here
