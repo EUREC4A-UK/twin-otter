@@ -21,7 +21,8 @@ def main():
     fig1 = plt.figure()
     ds.ROLL_OXTS.plot(linestyle='--', alpha=0.5)
     plt.twinx()
-    ds.ALT_OXTS.plot()
+    plt.plot(ds.Time, ds.ALT_OXTS/1000)
+    plt.ylabel('Altitude (km)')
     ymin, ymax = plt.gca().get_ylim()
 
     # Plot flight path with colours for altitude
@@ -58,11 +59,12 @@ def main():
 
 
 def plot_flight_path(ds):
-    lc = colored_line_plot(ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS, cmap='viridis')
+    lc = colored_line_plot(ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS/1000,
+                           vmin=0, vmax=3, cmap_steps=12, cmap='viridis')
     plt.xlim(ds.LON_OXTS.min(), ds.LON_OXTS.max())
     plt.ylim(ds.LAT_OXTS.min(), ds.LAT_OXTS.max())
     cbar = plt.colorbar(lc)
-    cbar.set_label('Altitude (m)')
+    cbar.set_label('Altitude (km)')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
 
@@ -79,7 +81,8 @@ def plot_flight_path(ds):
     return
 
 
-def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray'):
+def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray',
+                      cmap_steps=0):
     """Add a multicolored line to an existing plot
 
     Args:
@@ -97,6 +100,8 @@ def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray'):
 
         cmap (str, optional): Colormap to plot. Default is grey.
 
+        cmap_steps (int, optional): Number of discrete steps in the colorscale.
+            Defaults is zero for a continuous colorscale
     returns:
         matplotlib.collections.LineCollection:
             The plotted LineCollection. Required as argument to
@@ -113,13 +118,13 @@ def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray'):
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
     # Create discretised colourmap
-    cmap_continuous = plt.get_cmap(cmap)
-    cmap_discretised = mpl.colors.ListedColormap(
-        [cmap_continuous(n/10) for n in range(11)])
+    cmap = plt.get_cmap(cmap)
+    if cmap_steps != 0:
+        cmap = mpl.colors.ListedColormap(
+            [cmap(n/(cmap_steps-1)) for n in range(cmap_steps)])
 
     # Collect the line segments
-    lc = LineCollection(segments, cmap=plt.get_cmap(cmap),
-                        norm=plt.Normalize(vmin, vmax))
+    lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(vmin, vmax))
 
     # Set the line color to the specified array
     lc.set_array(color)
