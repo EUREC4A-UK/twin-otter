@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import LineCollection
+import cartopy.crs as ccrs
 
 import util
 
@@ -27,7 +28,7 @@ def main():
 
     # Plot flight path with colours for altitude
     fig2 = plt.figure()
-    plot_flight_path(ds)
+    plot_flight_path(ds, plt.gca().transData)
 
     # Functions to select points along the flightpath to mark
     # Keep a counter so each point is marked differently
@@ -58,9 +59,10 @@ def main():
     return
 
 
-def plot_flight_path(ds):
+def plot_flight_path(ds, transform):
     lc = colored_line_plot(ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS/1000,
-                           vmin=0, vmax=3, cmap_steps=12, cmap='viridis')
+                           vmin=0, vmax=3, cmap_steps=12, cmap='viridis',
+                           transform=transform)
     plt.xlim(ds.LON_OXTS.min(), ds.LON_OXTS.max())
     plt.ylim(ds.LAT_OXTS.min(), ds.LAT_OXTS.max())
     cbar = plt.colorbar(lc)
@@ -75,14 +77,14 @@ def plot_flight_path(ds):
 
     print(idx_s, idx_f)
 
-    plt.text(ds.LON_OXTS[idx_s], ds.LAT_OXTS[idx_s], 'S')
-    plt.text(ds.LON_OXTS[idx_f], ds.LAT_OXTS[idx_f], 'F')
+    plt.text(ds.LON_OXTS[idx_s], ds.LAT_OXTS[idx_s], 'S', transform=transform)
+    plt.text(ds.LON_OXTS[idx_f], ds.LAT_OXTS[idx_f], 'F', transform=transform)
 
     return
 
 
 def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray',
-                      cmap_steps=0):
+                      cmap_steps=0, **kwargs):
     """Add a multicolored line to an existing plot
 
     Args:
@@ -101,7 +103,9 @@ def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray',
         cmap (str, optional): Colormap to plot. Default is grey.
 
         cmap_steps (int, optional): Number of discrete steps in the colorscale.
-            Defaults is zero for a continuous colorscale
+            Defaults is zero for a continuous colorscale.
+
+        kwargs: Other keyword arguments to pass to LineCollection
     returns:
         matplotlib.collections.LineCollection:
             The plotted LineCollection. Required as argument to
@@ -124,7 +128,8 @@ def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray',
             [cmap(n/(cmap_steps-1)) for n in range(cmap_steps)])
 
     # Collect the line segments
-    lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(vmin, vmax))
+    lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(vmin, vmax),
+                        **kwargs)
 
     # Set the line color to the specified array
     lc.set_array(color)
