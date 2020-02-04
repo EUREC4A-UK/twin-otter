@@ -67,8 +67,11 @@ def plot_flight_path(ds):
     plt.ylabel('Latitude')
 
     # Add marker for start and end positions
-    idx_s = np.where(np.logical_not(np.isnan(ds.LON_OXTS)))[0][0]
-    idx_f = np.where(np.logical_not(np.isnan(ds.LON_OXTS)))[0][-1]
+    valid_times = np.where(ds.ALT_OXTS_FLAG == 0)[0]
+    idx_s = valid_times[0]
+    idx_f = valid_times[-1]
+
+    print(idx_s, idx_f)
 
     plt.text(ds.LON_OXTS[idx_s], ds.LAT_OXTS[idx_s], 'S')
     plt.text(ds.LON_OXTS[idx_f], ds.LAT_OXTS[idx_f], 'F')
