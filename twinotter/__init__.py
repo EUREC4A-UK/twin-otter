@@ -87,7 +87,7 @@ def generate_filename(flight_number, frequency):
     # Find the entry matching the flight number
     # This currently assumes there is at most one entry for each flight number,
     # it may be worth checking this
-    idx = flight_info[flight_info['Flight Number'] == 333].index[0]
+    idx = flight_info[flight_info['Flight Number'] == flight_number].index[0]
 
     # Get information about the flight to fill out the filename
     datestr = flight_info['Date'][idx].replace('-', '')
