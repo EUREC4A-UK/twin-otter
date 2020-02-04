@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
 import util
+import profile
 
 
 def main():
@@ -14,6 +15,7 @@ def generate(flight_number):
     dataset = util.load_flight(flight_number)
 
     plot_all(flight_number, dataset, 'leg', plot_leg)
+    plot_all(flight_number, dataset, 'profile', plot_profile)
 
     print('Completed')
 
@@ -65,6 +67,21 @@ def plot_leg(dataset, idx, prefix):
 
     dataset.U_OXTS[idx].plot(label=r'Vertical Velocity (m s$^{-1}$)')
     set_axes_and_labels(xmin, xmax, prefix, 'vertical_wind')
+
+    return
+
+
+def plot_profile(dataset, idx, prefix):
+    p = dataset.PS_AIR[idx]
+    T = dataset.TAT_ND_R[idx] - 273.15
+    Td = dataset.TDEW_BUCK[idx] - 273.15
+    u = dataset.U_OXTS[idx]
+    v = dataset.V_OXTS[idx]
+    profile.skewt(p, T, Td, u, v)
+
+    plt.savefig('figures/{}_{}.png'.format(prefix, 'skewt'))
+
+    plt.close()
 
     return
 
