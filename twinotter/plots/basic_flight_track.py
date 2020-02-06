@@ -81,4 +81,6 @@ if __name__ == '__main__':
 
     args = argparser.parse_args()
 
-    main(flight_number=args.flight_number)
+    import ipdb
+    with ipdb.launch_ipdb_on_exception():
+        main(flight_number=args.flight_number)

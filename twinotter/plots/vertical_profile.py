@@ -5,7 +5,7 @@ import util
 
 
 def main():
-    flight_number = 333
+    flight_number = 330
     leg_type = 'profile'
     leg_number = 0
 
