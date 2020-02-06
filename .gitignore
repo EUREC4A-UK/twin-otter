@@ -1,5 +1,6 @@
 .*.sw*
 .ipynb_checkpoints/
+obs/
 
 *.nc
 *.png

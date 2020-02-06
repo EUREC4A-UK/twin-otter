@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import LineCollection
 import cartopy.crs as ccrs
+import xarray as xr
 
 import util
 
@@ -59,31 +60,30 @@ def main():
     return
 
 
-def plot_flight_path(ds, transform):
-    lc = colored_line_plot(ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS/1000,
-                           vmin=0, vmax=3, cmap_steps=12, cmap='viridis',
-                           transform=transform)
-    plt.xlim(ds.LON_OXTS.min(), ds.LON_OXTS.max())
-    plt.ylim(ds.LAT_OXTS.min(), ds.LAT_OXTS.max())
-    cbar = plt.colorbar(lc)
+def plot_flight_path(ax, ds):
+    # drop points where lat/lon aren't given (which means the flag is 0
+    # "quality_good"
+    ds = ds.where(ds.LON_OXTS_FLAG==0, drop=True)
+    # drop nans too...
+    ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
+
+    lc = colored_line_plot(ax, ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS/1000,
+                           vmin=0, vmax=3, cmap_steps=12, cmap='jet',
+                           transform=ccrs.PlateCarree())
+    cbar = plt.colorbar(lc, ax=ax)
     cbar.set_label('Altitude (km)')
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
+
+    ax.set_xlabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
+    ax.set_ylabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
 
     # Add marker for start and end positions
-    valid_times = np.where(ds.ALT_OXTS_FLAG == 0)[0]
-    idx_s = valid_times[0]
-    idx_f = valid_times[-1]
-
-    print(idx_s, idx_f)
-
-    plt.text(ds.LON_OXTS[idx_s], ds.LAT_OXTS[idx_s], 'S', transform=transform)
-    plt.text(ds.LON_OXTS[idx_f], ds.LAT_OXTS[idx_f], 'F', transform=transform)
+    ax.text(ds.LON_OXTS[0], ds.LAT_OXTS[0], 'S', transform=ccrs.PlateCarree())
+    ax.text(ds.LON_OXTS[-1], ds.LAT_OXTS[-1], 'F', transform=ccrs.PlateCarree())
 
     return
 
 
-def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray',
+def colored_line_plot(ax, x, y, color, vmin=None, vmax=None, cmap='gray',
                       cmap_steps=0, **kwargs):
     """Add a multicolored line to an existing plot
 
@@ -135,7 +135,7 @@ def colored_line_plot(x, y, color, vmin=None, vmax=None, cmap='gray',
     lc.set_array(color)
 
     # Add the colored line to the existing plot
-    plt.gca().add_collection(lc)
+    ax.add_collection(lc)
 
     return lc
 
