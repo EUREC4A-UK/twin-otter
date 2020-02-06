@@ -118,8 +118,8 @@ def colored_line_plot(ax, x, y, color, vmin=None, vmax=None, cmap='gray',
         vmax = color.max()
 
     # Break the xy points up in to line segments
-    points = np.array([x, y]).T.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    segments = np.array([(x[:-1].values, y[:-1].values), (x[1:].values, y[1:].values)])
+    segments = np.transpose(segments, axes=(2,1,0))
 
     # Create discretised colourmap
     cmap = plt.get_cmap(cmap)
