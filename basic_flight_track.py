@@ -8,6 +8,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from pathlib import Path
 
 import util
 from interactive_flight_track import plot_flight_path
@@ -18,65 +19,66 @@ lat = 13 + (18/60)
 lon = -(57 + (43/60))
 r = 1
 
-# Define the projection used to display the circle:
-proj = ccrs.Orthographic(central_longitude=lon, central_latitude=lat)
-
-def compute_radius(ortho, radius_degrees):
+def _compute_radius(ortho, radius_degrees):
     phi1 = lat + radius_degrees if lat <= 0 else lat - radius_degrees
     _, y1 = ortho.transform_point(lon, phi1, ccrs.PlateCarree())
     return abs(y1)
 
-# Compute the required radius in projection native coordinates:
-r_ortho = compute_radius(proj, r)
 
-# We can now compute the correct plot extents to have padding in degrees:
-pad_north = compute_radius(proj, r + 0.1)
-pad_east = compute_radius(proj, r + 0.1)
-pad_south = compute_radius(proj, r + 0.1)
-pad_west = compute_radius(proj, r + 1)
-
-# define image properties
-resolution = '10m'
-
-
-def main():
-    flight_number = 330
-
+def main(flight_number = 330):
     ax = draw_features()
     ds = util.load_flight(flight_number)
-    plot_flight_path(ds, transform=ccrs.PlateCarree())
+    plot_flight_path(ax=ax, ds=ds)
 
-    # Deliberately avoiding set_extent because it has some odd behaviour that causes
-    # errors for this case. However, since we already know our extents in native
-    # coordinates we can just use the lower-level set_xlim/set_ylim safely.
-    ax.set_xlim([-pad_west, pad_east])
-    ax.set_ylim([-pad_south, pad_north])
+    path_fig = Path('figures/flight{}_track.png'.format(flight_number))
+    path_fig.parent.mkdir(exist_ok=True, parents=True)
 
-    plt.savefig('figures/flight{}_track.png'.format(flight_number))
+    plt.savefig(path_fig, bbox_inches='tight')
     return
 
 
 def draw_features():
     # create figure
-    fig = plt.figure(figsize=(16, 10), dpi=96)
-    ax = plt.axes(projection=proj)
+    bbox = [-60, -56.4, 12, 14.4]
+    domain_aspect = (bbox[3]-bbox[2])/(bbox[1]-bbox[0])
+    fig = plt.figure(figsize=(11., domain_aspect*10), dpi=96)
+    ax = plt.axes(projection=ccrs.PlateCarree())
 
     # Shade land and sea
     ax.imshow(np.tile(
         np.array([[cfeature.COLORS['water'] * 255]], dtype=np.uint8),[2, 2, 1]),
         origin='upper', transform=ccrs.PlateCarree(), extent=[-180, 180, -180, 180])
     ax.add_feature(
-        cfeature.NaturalEarthFeature('physical', 'land', resolution,
+        cfeature.NaturalEarthFeature('physical', 'land', '10m',
                                      edgecolor='black',
                                      facecolor=cfeature.COLORS['land']))
+    ax.gridlines(linestyle='--', color='black', draw_labels=True)
+
 
     # Add HALO circle
+    # Define the projection used to display the circle:
+    proj = ccrs.Orthographic(central_longitude=lon, central_latitude=lat)
+    # Compute the required radius in projection native coordinates:
+    r_ortho = _compute_radius(proj, r)
+    # We can now compute the correct plot extents to have padding in degrees:
+    pad_north = _compute_radius(proj, r + 0.1)
+    pad_east = _compute_radius(proj, r + 0.1)
+    pad_south = _compute_radius(proj, r + 0.1)
+    pad_west = _compute_radius(proj, r + 1)
     ax.add_patch(mpatches.Circle(xy=[lon, lat], radius=r_ortho, color='red',
                                  alpha=0.3, transform=proj, zorder=30, fill=False))
+
+    ax.set_extent(bbox, crs=ccrs.PlateCarree())
     fig.tight_layout()
 
     return ax
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('flight_number', type=int)
+
+    args = argparser.parse_args()
+
+    main(flight_number=args.flight_number)
