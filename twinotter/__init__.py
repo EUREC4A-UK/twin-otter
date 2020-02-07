@@ -4,12 +4,12 @@ from pathlib import Path
 import re
 
 
-flight_info = pd.read_csv('obs/flight_information.csv')
+# flight_info = pd.read_csv('obs/flight_information.csv')
 
 MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
 MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
 
-def load_flight(flight_data_path, frequency=1, revision="most_recent"):
+def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=False):
     if revision == "most_recent":
         revision = "*"
     else:
@@ -39,6 +39,8 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent"):
         filename = files[0]
 
     ds = xr.open_dataset(filename, decode_cf=False)
+    if debug:
+        print("Loaded {}".format(filename))
 
     # drop points where lat/lon aren't given (which means the flag is 0
     # "quality_good"
@@ -51,6 +53,9 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent"):
 
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
+
+    ds.attrs['source_file'] = filename
+    ds.attrs['flight_number'] = meta[filename]['flight_num']
 
     return ds
 

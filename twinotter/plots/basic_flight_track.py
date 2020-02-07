@@ -9,6 +9,7 @@ import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from pathlib import Path
+from datetime import datetime
 
 from .. import load_flight
 from . import plot_flight_path
@@ -27,14 +28,18 @@ def _compute_radius(ortho, radius_degrees):
 
 def main(flight_data_path):
     ax = draw_features()
-    ds = load_flight(flight_data_path)
+    ds = load_flight(flight_data_path, debug=True)
     plot_flight_path(ax=ax, ds=ds)
 
-    path_fig = Path(flight_data_path)/'figures'/'flight_track.png'
+    fig = ax.figure
+    caption = "created {} from {}".format(datetime.now(), ds.source_file)
+    ax.text(0.0, 0.0, caption, transform=fig.transFigure)
+
+    path_fig = Path(flight_data_path)/'figures'/'flight{}_track_altitude.png'.format(ds.flight_number)
     path_fig.parent.mkdir(exist_ok=True, parents=True)
 
     plt.savefig(path_fig, bbox_inches='tight')
-    return
+    print("Saved flight track to `{}`".format(str(path_fig)))
 
 
 def draw_features():
@@ -77,10 +82,9 @@ def draw_features():
 if __name__ == '__main__':
     import argparse
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_data_path')
+    argparser.add_argument('flight_data_path', nargs="+")
 
     args = argparser.parse_args()
 
-    import ipdb
-    with ipdb.launch_ipdb_on_exception():
-        main(flight_data_path=args.flight_data_path)
+    for flight_data_path in args.flight_data_path:
+        main(flight_data_path=flight_data_path)
