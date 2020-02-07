@@ -11,6 +11,12 @@ def load_flight(flight_number, frequency=1):
 
     ds = xr.open_dataset(filename, decode_cf=False)
 
+    # drop points where lat/lon aren't given (which means the flag is 0
+    # "quality_good"
+    ds = ds.where(ds.LON_OXTS_FLAG==0, drop=True)
+    # drop nans too...
+    ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
+
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
 

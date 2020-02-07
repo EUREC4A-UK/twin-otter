@@ -6,17 +6,16 @@ to mark the corresponding points on both figures.
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-from matplotlib.collections import LineCollection
 import cartopy.crs as ccrs
 import xarray as xr
 
-import util
+from .. import load_flight
+from . import plot_flight_path
 
 
-def main():
+def main(flight_number):
     # because of how the flags are stored (units is '1b') decoding cf times fails
-    ds = util.load_flight(330)
+    ds = load_flight(flight_number)
 
     # Plot the main variable of interest
     # Change this to whatever variable you want or add additional figures here
@@ -27,9 +26,14 @@ def main():
     plt.ylabel('Altitude (km)')
     ymin, ymax = plt.gca().get_ylim()
 
+
     # Plot flight path with colours for altitude
-    fig2 = plt.figure()
-    plot_flight_path(ds, plt.gca().transData)
+    fig2, ax = plt.subplots(subplot_kw=dict(projection=ccrs.PlateCarree()),)
+    ax.gridlines(draw_labels=True)
+    ax.coastlines()
+    plot_flight_path(ax=ax, ds=ds)
+
+    print(plt.show)
 
     # Functions to select points along the flightpath to mark
     # Keep a counter so each point is marked differently
@@ -60,85 +64,6 @@ def main():
     return
 
 
-def plot_flight_path(ax, ds):
-    # drop points where lat/lon aren't given (which means the flag is 0
-    # "quality_good"
-    ds = ds.where(ds.LON_OXTS_FLAG==0, drop=True)
-    # drop nans too...
-    ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
-
-    lc = colored_line_plot(ax, ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS/1000,
-                           vmin=0, vmax=3, cmap_steps=12, cmap='jet',
-                           transform=ccrs.PlateCarree())
-    cbar = plt.colorbar(lc, ax=ax)
-    cbar.set_label('Altitude (km)')
-
-    ax.set_xlabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
-    ax.set_ylabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
-
-    # Add marker for start and end positions
-    ax.text(ds.LON_OXTS[0], ds.LAT_OXTS[0], 'S', transform=ccrs.PlateCarree())
-    ax.text(ds.LON_OXTS[-1], ds.LAT_OXTS[-1], 'F', transform=ccrs.PlateCarree())
-
-    return
-
-
-def colored_line_plot(ax, x, y, color, vmin=None, vmax=None, cmap='gray',
-                      cmap_steps=0, **kwargs):
-    """Add a multicolored line to an existing plot
-
-    Args:
-        x (np.array): The x points of the plot
-
-        y (np.array): The y points of the plot
-
-        color (np.array): The color of the line at the xy points
-
-        vmin (scalar, optional): The minimum of the colorscale. Defaults to the
-            minimum of the color array.
-
-        vmax (scalar, optional): The maximum of the colorscale. Defaults to the
-            maximum of the color array.
-
-        cmap (str, optional): Colormap to plot. Default is grey.
-
-        cmap_steps (int, optional): Number of discrete steps in the colorscale.
-            Defaults is zero for a continuous colorscale.
-
-        kwargs: Other keyword arguments to pass to LineCollection
-    returns:
-        matplotlib.collections.LineCollection:
-            The plotted LineCollection. Required as argument to
-            :py:func:`matplotlib.pyplot.colorbar`
-    """
-    # Set the color scalings
-    if vmin is None:
-        vmin = color.min()
-    if vmax is None:
-        vmax = color.max()
-
-    # Break the xy points up in to line segments
-    segments = np.array([(x[:-1].values, y[:-1].values), (x[1:].values, y[1:].values)])
-    segments = np.transpose(segments, axes=(2,1,0))
-
-    # Create discretised colourmap
-    cmap = plt.get_cmap(cmap)
-    if cmap_steps != 0:
-        cmap = mpl.colors.ListedColormap(
-            [cmap(n/(cmap_steps-1)) for n in range(cmap_steps)])
-
-    # Collect the line segments
-    lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(vmin, vmax),
-                        **kwargs)
-
-    # Set the line color to the specified array
-    lc.set_array(color)
-
-    # Add the colored line to the existing plot
-    ax.add_collection(lc)
-
-    return lc
-
 
 def find_nearest_point(x, y, xpoints, ypoints):
     return int(np.argmin((x-xpoints)**2 + (y-ypoints)**2))
@@ -160,4 +85,10 @@ def add_selected_points(idx, ds, counter, ymax):
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('flight_number', type=int)
+
+    args = argparser.parse_args()
+
+    main(flight_number=args.flight_number)

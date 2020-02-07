@@ -1,0 +1,83 @@
+import cartopy.crs as ccrs
+import xarray as xr
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+
+
+def plot_flight_path(ax, ds):
+
+    lc = colored_line_plot(ax, ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS/1000,
+                           vmin=0, vmax=3, cmap_steps=12, cmap='jet',
+                           transform=ccrs.PlateCarree())
+    cbar = plt.colorbar(lc, ax=ax)
+    cbar.set_label('Altitude (km)')
+
+    ax.set_xlabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
+    ax.set_ylabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
+
+    # Add marker for start and end positions
+    ax.text(ds.LON_OXTS[0], ds.LAT_OXTS[0], 'S', transform=ccrs.PlateCarree())
+    ax.text(ds.LON_OXTS[-1], ds.LAT_OXTS[-1], 'F', transform=ccrs.PlateCarree())
+
+    return
+
+
+def colored_line_plot(ax, x, y, color, vmin=None, vmax=None, cmap='gray',
+                      cmap_steps=0, **kwargs):
+    """Add a multicolored line to an existing plot
+
+    Args:
+        x (np.array): The x points of the plot
+
+        y (np.array): The y points of the plot
+
+        color (np.array): The color of the line at the xy points
+
+        vmin (scalar, optional): The minimum of the colorscale. Defaults to the
+            minimum of the color array.
+
+        vmax (scalar, optional): The maximum of the colorscale. Defaults to the
+            maximum of the color array.
+
+        cmap (str, optional): Colormap to plot. Default is grey.
+
+        cmap_steps (int, optional): Number of discrete steps in the colorscale.
+            Defaults is zero for a continuous colorscale.
+
+        kwargs: Other keyword arguments to pass to LineCollection
+    returns:
+        matplotlib.collections.LineCollection:
+            The plotted LineCollection. Required as argument to
+            :py:func:`matplotlib.pyplot.colorbar`
+    """
+    # Set the color scalings
+    if vmin is None:
+        vmin = color.min()
+    if vmax is None:
+        vmax = color.max()
+
+    # Break the xy points up in to line segments
+    segments = np.array([(x[:-1].values, x[1:].values), (y[:-1].values, y[1:].values)])
+    segments = np.transpose(segments, axes=(2,1,0))
+
+    # Create discretised colourmap
+    cmap = plt.get_cmap(cmap)
+    if cmap_steps != 0:
+        cmap = mpl.colors.ListedColormap(
+            [cmap(n/(cmap_steps-1)) for n in range(cmap_steps)])
+
+    # Collect the line segments
+    lc = LineCollection(segments, cmap=cmap, norm=plt.Normalize(vmin, vmax),
+                        **kwargs)
+
+    # Set the line color to the specified array
+    lc.set_array(color)
+
+    # Add the colored line to the existing plot
+    ax.add_collection(lc)
+
+    ax.autoscale()
+
+    return lc

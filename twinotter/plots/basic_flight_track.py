@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from pathlib import Path
 
-import util
-from interactive_flight_track import plot_flight_path
+from .. import load_flight
+from . import plot_flight_path
 
 
 # HALO circle attributes
@@ -27,7 +27,7 @@ def _compute_radius(ortho, radius_degrees):
 
 def main(flight_number = 330):
     ax = draw_features()
-    ds = util.load_flight(flight_number)
+    ds = load_flight(flight_number)
     plot_flight_path(ax=ax, ds=ds)
 
     path_fig = Path('figures/flight{}_track.png'.format(flight_number))
