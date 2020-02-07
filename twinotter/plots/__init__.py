@@ -78,6 +78,9 @@ def colored_line_plot(ax, x, y, color, vmin=None, vmax=None, cmap='gray',
     # Add the colored line to the existing plot
     ax.add_collection(lc)
 
-    ax.autoscale()
+    # autoscale if limits haven't already been set so that the linecollection
+    # is visible
+    if ax.get_xlim() == (0, 1) and ax.get_ylim() == (0, 1):
+        ax.autoscale()
 
     return lc
