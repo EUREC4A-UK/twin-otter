@@ -46,6 +46,9 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent"):
     # drop nans too...
     ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
 
+    # XXX: quick fix until we get loading with CF-convention parsing working
+    ds = ds.where(ds.LON_OXTS!=ds.LON_OXTS._FillValue, drop=True)
+
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
 
