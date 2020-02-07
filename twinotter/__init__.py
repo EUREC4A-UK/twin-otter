@@ -9,7 +9,8 @@ import re
 MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
 MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
 
-def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=False):
+def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=False,
+                filter_invalid=True):
     if revision == "most_recent":
         revision = "*"
     else:
@@ -42,14 +43,15 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
     if debug:
         print("Loaded {}".format(filename))
 
-    # drop points where lat/lon aren't given (which means the flag is 0
-    # "quality_good"
-    ds = ds.where(ds.LON_OXTS_FLAG==0, drop=True)
-    # drop nans too...
-    ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
+    if filter_invalid:
+        # drop points where lat/lon aren't given (which means the flag is 0
+        # "quality_good"
+        ds = ds.where(ds.LON_OXTS_FLAG==0, drop=True)
+        # drop nans too...
+        ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
 
-    # XXX: quick fix until we get loading with CF-convention parsing working
-    ds = ds.where(ds.LON_OXTS!=ds.LON_OXTS._FillValue, drop=True)
+        # XXX: quick fix until we get loading with CF-convention parsing working
+        ds = ds.where(ds.LON_OXTS!=ds.LON_OXTS._FillValue, drop=True)
 
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
@@ -60,11 +62,11 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
     return ds
 
 
-def flight_leg_index(flight_number, leg_name, leg_number=0):
+def flight_leg_index(flight_data_path, leg_name, leg_number=0):
     """Get a slice representing a single section of the flight
 
     Args:
-        flight_number (int):
+        flight_data_path (str):
         leg_name (str):
         leg_number (int): For multiple of the same type of leg within a flight,
             select which leg you want. Default is zero
@@ -72,7 +74,8 @@ def flight_leg_index(flight_number, leg_name, leg_number=0):
     Returns:
         slice: 
     """
-    legs = pd.read_csv('obs/legs_flight{}.csv'.format(flight_number))
+    p = Path(flight_data_path)/"flight_legs.csv"
+    legs = pd.read_csv(p)
     idx = legs[legs['Type'] == leg_name].index[leg_number]
     start = legs['Start'][idx]
     end = legs['End'][idx]
