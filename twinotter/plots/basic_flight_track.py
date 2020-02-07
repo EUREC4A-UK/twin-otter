@@ -25,12 +25,12 @@ def _compute_radius(ortho, radius_degrees):
     return abs(y1)
 
 
-def main(flight_number = 330):
+def main(flight_data_path):
     ax = draw_features()
-    ds = load_flight(flight_number)
+    ds = load_flight(flight_data_path)
     plot_flight_path(ax=ax, ds=ds)
 
-    path_fig = Path('figures/flight{}_track.png'.format(flight_number))
+    path_fig = Path(flight_data_path)/'figures'/'flight_track.png'
     path_fig.parent.mkdir(exist_ok=True, parents=True)
 
     plt.savefig(path_fig, bbox_inches='tight')
@@ -77,10 +77,10 @@ def draw_features():
 if __name__ == '__main__':
     import argparse
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_number', type=int)
+    argparser.add_argument('flight_data_path')
 
     args = argparser.parse_args()
 
     import ipdb
     with ipdb.launch_ipdb_on_exception():
-        main(flight_number=args.flight_number)
+        main(flight_data_path=args.flight_data_path)

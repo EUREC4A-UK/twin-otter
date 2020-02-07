@@ -1,13 +1,42 @@
 import pandas as pd
 import xarray as xr
+from pathlib import Path
+import re
 
 
 flight_info = pd.read_csv('obs/flight_information.csv')
 
+MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
+MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
 
-def load_flight(flight_number, frequency=1):
-    datestr = flight_info['Date'][flight_info['Flight Number'] == flight_number].values[0].replace('-', '')
-    filename = 'obs/core_masin_{}_r002_flight{}_{}hz.nc'.format(datestr, flight_number, frequency)
+def load_flight(flight_data_path, frequency=1, revision="most_recent"):
+    if revision == "most_recent":
+        revision = "*"
+    else:
+        revision = "{:03d}".format(revision)
+
+    fn_pattern = MASIN_CORE_FORMAT.format(
+        date="*", revision=revision, flight_num="*", freq=frequency
+    )
+    files = list(Path(flight_data_path).glob(fn_pattern))
+
+    meta = {}
+    for file in files:
+        meta[file] = re.match(MASIN_CORE_RE, file.name).groupdict()
+
+    if len(files) == 0:
+        raise Exception("Couldn't find MASIN data in `{}/MASIN`, please place"
+                        " data there.")
+
+    if len(files) > 1:
+        if revision == "*":
+            filename = sorted(files, lambda v: meta[v]['revision'])[0]
+        else:
+            raise Exception("More than one MASIN file was found: `{}`".format(
+                ", ".join(files)
+            ))
+    else:
+        filename = files[0]
 
     ds = xr.open_dataset(filename, decode_cf=False)
 

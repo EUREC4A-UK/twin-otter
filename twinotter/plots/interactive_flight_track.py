@@ -13,9 +13,9 @@ from .. import load_flight
 from . import plot_flight_path
 
 
-def main(flight_number):
+def main(flight_data_path):
     # because of how the flags are stored (units is '1b') decoding cf times fails
-    ds = load_flight(flight_number)
+    ds = load_flight(flight_data_path)
 
     # Plot the main variable of interest
     # Change this to whatever variable you want or add additional figures here
@@ -33,7 +33,6 @@ def main(flight_number):
     ax.coastlines()
     plot_flight_path(ax=ax, ds=ds)
 
-    print(plt.show)
 
     # Functions to select points along the flightpath to mark
     # Keep a counter so each point is marked differently
@@ -87,8 +86,8 @@ def add_selected_points(idx, ds, counter, ymax):
 if __name__ == '__main__':
     import argparse
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_number', type=int)
+    argparser.add_argument('flight_data_path')
 
     args = argparser.parse_args()
 
-    main(flight_number=args.flight_number)
+    main(flight_data_path=args.flight_data_path)
