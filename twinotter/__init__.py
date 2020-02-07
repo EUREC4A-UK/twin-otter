@@ -18,7 +18,7 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent"):
     fn_pattern = MASIN_CORE_FORMAT.format(
         date="*", revision=revision, flight_num="*", freq=frequency
     )
-    files = list(Path(flight_data_path).glob(fn_pattern))
+    files = list((Path(flight_data_path)/"MASIN").glob(fn_pattern))
 
     meta = {}
     for file in files:
@@ -26,11 +26,11 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent"):
 
     if len(files) == 0:
         raise Exception("Couldn't find MASIN data in `{}/MASIN`, please place"
-                        " data there.")
+                        " data there.".format(flight_data_path))
 
     if len(files) > 1:
         if revision == "*":
-            filename = sorted(files, lambda v: meta[v]['revision'])[0]
+            filename = sorted(files, key=lambda v: meta[v]['revision'], reverse=True)[0]
         else:
             raise Exception("More than one MASIN file was found: `{}`".format(
                 ", ".join(files)
