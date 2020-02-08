@@ -3,11 +3,27 @@ import xarray as xr
 from pathlib import Path
 import re
 
+import xarray as xr
+
 
 # flight_info = pd.read_csv('obs/flight_information.csv')
 
 MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
 MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
+
+def _monkey_patch_xr_load():
+    # by the CF-convections units should always be a string
+    # http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#units
+    # fix here as it breaks cf-convention loading in xarray otherwise
+    import xarray.conventions
+
+    _decode_old = xarray.conventions.decode_cf_variable
+    def _decode_cf_variable(name, var, *args, **kwargs):
+        if var.attrs['units'] == 1:
+            var.attrs['units'] = "1"
+        return _decode_old(name=name, var=var, *args, **kwargs)
+
+    xarray.conventions.decode_cf_variable = _decode_cf_variable
 
 def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=False,
                 filter_invalid=True):
@@ -39,7 +55,9 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
     else:
         filename = files[0]
 
-    ds = xr.open_dataset(filename, decode_cf=False)
+    _monkey_patch_xr_load()
+    ds = xr.open_dataset(filename)
+
     if debug:
         print("Loaded {}".format(filename))
 
@@ -49,9 +67,6 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
         ds = ds.where(ds.LON_OXTS_FLAG==0, drop=True)
         # drop nans too...
         ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
-
-        # XXX: quick fix until we get loading with CF-convention parsing working
-        ds = ds.where(ds.LON_OXTS!=ds.LON_OXTS._FillValue, drop=True)
 
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
