@@ -9,7 +9,16 @@ def main(flight_data_path, filter_by={}):
     ds = load_flight(flight_data_path, debug=True, filter_invalid=False)
 
     if 'time_interval' in filter_by:
-        ds = ds.sel(Time=slice(*filter_by['time_interval']))
+        ds_filtered = ds.sel(Time=slice(*filter_by['time_interval']))
+        if ds_filtered.Time.count() == 0:
+            raise Exception("Nothing found in selected time range, data"
+                            " time range: [{} : {}]".format(
+                                ds.Time.min().values, ds.Time.max().values))
+        else:
+            ds = ds_filtered
+        title = "flight {}, from {} to {}".format(
+            ds.flight_number, *filter_by['time_interval']
+        )
     elif 'leg' in filter_by:
         ds = _filter_by_flight_leg(ds, flight_data_path, *filter_by['leg'])
         title = "leg: {} {}".format(*filter_by['leg'])
