@@ -5,7 +5,7 @@ import dateutil.parser
 from .. import flight_leg_index, load_flight
 
 
-def main(flight_data_path, filter_by={}):
+def main(flight_data_path, filter_by={}, plot_type='skewt'):
     ds = load_flight(flight_data_path, debug=True, filter_invalid=False)
 
     if 'time_interval' in filter_by:
@@ -16,7 +16,7 @@ def main(flight_data_path, filter_by={}):
                                 ds.Time.min().values, ds.Time.max().values))
         else:
             ds = ds_filtered
-        title = "flight {}, from {} to {}".format(
+        title = "flight {}, extract: {} to {}".format(
             ds.flight_number, *filter_by['time_interval']
         )
     elif 'leg' in filter_by:
@@ -25,9 +25,15 @@ def main(flight_data_path, filter_by={}):
     else:
         raise NotImplementedError
 
-    p, T, Td, u, v = _extract_plot_data(ds)
+    alt, p, T, Td, u, v = _extract_plot_data(ds)
 
-    skewt(p, T, Td, u, v)
+    if plot_type == 'skewt':
+        skewt(p, T, Td, u, v)
+    elif plot_type == 'linear_altitude':
+        _plot_linear_altitude(ds)
+    else:
+        raise NotImplementedError(plot_type)
+
 
     plt.title(title)
     plt.show()
@@ -38,6 +44,14 @@ def _filter_by_flight_leg(ds, flight_data_path, leg_type, leg_number):
     idx = flight_leg_index(flight_data_path, leg_type, leg_number)
     return ds.isel(Time=idx)
 
+def _plot_linear_altitude(ds):
+    fig, ax = plt.subplots()
+
+    ds_ = ds.swap_dims(dict(Time='ALT_OXTS'))
+
+    ds_.TAT_ND_R.plot(y='ALT_OXTS', ax=ax, color='green')
+    ds_.TDEW_BUCK.plot(y='ALT_OXTS', ax=ax, color='red')
+
 
 def _extract_plot_data(ds):
     p = ds.PS_AIR
@@ -45,8 +59,9 @@ def _extract_plot_data(ds):
     Td = ds.TDEW_BUCK - 273.15
     u = ds.U_OXTS
     v = ds.V_OXTS
+    alt = ds.HGT_RADR1
 
-    return p, T, Td, u, v
+    return alt, p, T, Td, u, v
 
 
 def skewt(p, T, Td, u, v):
@@ -109,15 +124,19 @@ if __name__ == '__main__':
                            help='e.g. 2020-01-17T14:00Z 2020-01-17T15:00Z',
                            nargs=2, type=dateutil.parser.parse)
     argparser.add_argument('--leg', help='e.g. profile:0', type=_flight_leg)
+    argparser.add_argument('--type', choices=['skewt', 'linear_altitude'],
+                           default='skewt')
 
     args = argparser.parse_args()
 
+    kws = dict(plot_type=args.type)
+
     if args.time_interval is not None:
-        main(args.flight_data_path,
-             filter_by=dict(time_interval=args.time_interval))
+        kws['filter_by'] = dict(time_interval=args.time_interval)
     elif args.leg:
-        main(args.flight_data_path,
-             filter_by=dict(leg=args.leg))
+        kws['filter_by'] = dict(leg=args.leg)
     else:
         raise NotImplementedError
+
+    main(args.flight_data_path, **kws)
 
