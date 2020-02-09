@@ -35,7 +35,8 @@ def main(flight_data_path, flight_summary_path):
                 flight_number=entry['Flight Number'],
                 date=entry['Date'],
                 frequency=entry['Frequency'],
-                revision=entry['Revision']
+                revision=entry['Revision'],
+                flight_data_path=flight_data_path,
             )
 
             # Check which files are already contained in the .csv

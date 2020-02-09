@@ -59,7 +59,7 @@ def flight_leg_index(flight_number, leg_name, leg_number=0):
     return slice(start, end)
 
 
-def generate_file_path(flight_number, date, frequency=1, revision=1):
+def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data_path=None):
     # Make the filename
     filename = MASIN_CORE_FORMAT.format(
         flight_number=flight_number,
@@ -69,7 +69,7 @@ def generate_file_path(flight_number, date, frequency=1, revision=1):
     )
 
     # Find all matching files in the obs directory
-    file_path = list(Path('obs/').rglob(filename))
+    file_path = list(Path(flight_data_path).rglob(filename))
 
     # Should only be one of these files
     if len(file_path) == 1:
