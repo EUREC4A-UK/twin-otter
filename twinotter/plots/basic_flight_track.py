@@ -11,8 +11,8 @@ import matplotlib.patches as mpatches
 from pathlib import Path
 from datetime import datetime
 
-from .. import load_flight
-from . import plot_flight_path
+from twinotter import load_flight
+from twinotter.plots import plot_flight_path
 
 
 # HALO circle attributes
@@ -27,6 +27,8 @@ def _compute_radius(ortho, radius_degrees):
 
 
 def main(flight_data_path):
+    flight_data_path = Path(flight_data_path)
+
     ax = draw_features()
     ds = load_flight(flight_data_path, debug=True)
     plot_flight_path(ax=ax, ds=ds)
@@ -35,7 +37,11 @@ def main(flight_data_path):
     caption = "created {} from {}".format(datetime.now(), ds.source_file)
     ax.text(0.0, 0.0, caption, transform=fig.transFigure)
 
-    path_fig = Path(flight_data_path)/'figures'/'flight{}_track_altitude.png'.format(ds.flight_number)
+    if flight_data_path.is_file():
+        path_fig = flight_data_path.parent
+    else:
+        path_fig = flight_data_path
+    path_fig = path_fig/'figures'/'flight{}_track_altitude.png'.format(ds.flight_number)
     path_fig.parent.mkdir(exist_ok=True, parents=True)
 
     plt.savefig(path_fig, bbox_inches='tight')
@@ -65,11 +71,6 @@ def draw_features():
     proj = ccrs.Orthographic(central_longitude=lon, central_latitude=lat)
     # Compute the required radius in projection native coordinates:
     r_ortho = _compute_radius(proj, r)
-    # We can now compute the correct plot extents to have padding in degrees:
-    pad_north = _compute_radius(proj, r + 0.1)
-    pad_east = _compute_radius(proj, r + 0.1)
-    pad_south = _compute_radius(proj, r + 0.1)
-    pad_west = _compute_radius(proj, r + 1)
     ax.add_patch(mpatches.Circle(xy=[lon, lat], radius=r_ortho, color='red',
                                  alpha=0.3, transform=proj, zorder=30, fill=False))
 
