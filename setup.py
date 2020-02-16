@@ -6,7 +6,15 @@ from numpy.distutils.core import setup, Extension
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-requirements = ['xarray']
+requirements = [
+    'xarray',
+    'numpy',
+    'matplotlib',
+    'pandas',
+    'metpy',
+    'cartopy',
+    'parse',
+]
 
 setup_requirements = [ ]
 
