@@ -6,7 +6,7 @@ import xarray as xr
 
 
 # netCDF naming: core_masin_YYYYMMDD_rNNN_flightNNN_Nhz.nc
-MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_number}_{frequency}hz.nc"
+MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
 MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
 
 
@@ -100,9 +100,9 @@ def flight_leg_index(flight_number, leg_name, leg_number=0):
 def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data_path=None):
     # Make the filename
     filename = MASIN_CORE_FORMAT.format(
-        flight_number=flight_number,
+        flight_num=flight_number,
         date=date.replace('-', ''),
-        frequency=frequency,
+        freq=frequency,
         revision='{:03d}'.format(revision)
     )
 

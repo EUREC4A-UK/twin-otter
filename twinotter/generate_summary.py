@@ -20,7 +20,7 @@ def main(flight_data_path, flight_summary_path):
     # Get a list of netCDF files in the obs/ folder which match the expected
     # file pattern
     fn_pattern = twinotter.MASIN_CORE_FORMAT.format(
-        date="*", revision="*", flight_number="*", frequency="*"
+        date="*", revision="*", flight_num="*", freq="*"
     )
 
     file_paths = list(Path(flight_data_path).rglob(fn_pattern))
@@ -72,12 +72,12 @@ def main(flight_data_path, flight_summary_path):
 
         # Add flight information to .csv
         flight_summary = flight_summary.append({
-            'Flight Number': int(flight_info['flight_number']),
+            'Flight Number': int(flight_info['flight_num']),
             'Date': date.strftime('%Y-%m-%d'),
             'Start': str(start),
             'End': str(end),
             'Revision': int(flight_info['revision']),
-            'Frequency': int(flight_info['frequency'])
+            'Frequency': int(flight_info['freq'])
         }, ignore_index=True)
 
     flight_summary.sort_values('Flight Number', inplace=True)
