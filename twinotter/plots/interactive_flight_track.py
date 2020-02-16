@@ -3,29 +3,27 @@
 Plot a variable of interest and the flight track then click on either figure
 to mark the corresponding points on both figures.
 """
+import datetime
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.widgets import SpanSelector
 import cartopy.crs as ccrs
-import xarray as xr
 
-from .. import load_flight
-from . import plot_flight_path
+from twinotter import load_flight
+from twinotter.plots import plot_flight_path
 
 
 def main(flight_data_path):
-    # because of how the flags are stored (units is '1b') decoding cf times fails
     ds = load_flight(flight_data_path)
 
     # Plot the main variable of interest
     # Change this to whatever variable you want or add additional figures here
-    fig1 = plt.figure()
+    fig1, ax1a = plt.subplots()
     ds.ROLL_OXTS.plot(linestyle='--', alpha=0.5)
-    plt.twinx()
-    plt.plot(ds.Time, ds.ALT_OXTS/1000)
-    plt.ylabel('Altitude (km)')
-    ymin, ymax = plt.gca().get_ylim()
-
+    ax1b = ax1a.twinx()
+    ax1b.plot(ds.Time, ds.ALT_OXTS/1000)
+    ax1b.set_ylabel('Altitude (km)')
 
     # Plot flight path with colours for altitude
     fig2, ax = plt.subplots(subplot_kw=dict(projection=ccrs.PlateCarree()),)
@@ -33,54 +31,35 @@ def main(flight_data_path):
     ax.coastlines()
     plot_flight_path(ax=ax, ds=ds)
 
+    # Save flight leg start and end points
+    leg_times = []
 
-    # Functions to select points along the flightpath to mark
-    # Keep a counter so each point is marked differently
-    counter = 1
+    # Drag mouse from the start to the end of a leg and save the corresponding
+    # times
+    def highlight_leg(start, end):
+        idx_start = find_nearest_point(start, ds.Time)
+        idx_end = find_nearest_point(end, ds.Time)
 
-    # Select an interesting point on the main plot as mark the corresponding
-    # point on the flight path
-    def select_interesting_point(event):
-        nonlocal counter
-        idx = find_nearest_point(event.xdata, 0, ds.Time, np.zeros_like(ds.Time))
-        print(idx)
-        add_selected_points(idx, ds, counter, ymax)
-        counter += 1
+        leg_times.append([format_timedelta(ds, idx_start),
+                          format_timedelta(ds, idx_end)])
 
-    # Select a position on the flight path and mark the corresponding point on
-    # the main plot
-    def select_flight_position(event):
-        nonlocal counter
-        idx = find_nearest_point(event.xdata, event.ydata, ds.LON_OXTS, ds.LAT_OXTS)
-        print(idx)
-        add_selected_points(idx, ds, counter, ymax)
-        counter += 1
+        print(leg_times)
 
-    fig1.canvas.mpl_connect('button_press_event', select_interesting_point)
-    fig2.canvas.mpl_connect('button_press_event', select_flight_position)
+        return
+
+    selector = SpanSelector(
+        ax1b, highlight_leg, direction='horizontal')
 
     plt.show()
     return
 
 
+def find_nearest_point(value, points):
+    return int(np.argmin(np.abs(value-points)))
 
-def find_nearest_point(x, y, xpoints, ypoints):
-    return int(np.argmin((x-xpoints)**2 + (y-ypoints)**2))
 
-
-def add_selected_points(idx, ds, counter, ymax):
-    # Plot a vertical line at the specified flight time with a number at the top
-    fig = plt.figure(1)
-    plt.axvline(ds.Time[idx], color='k')
-    plt.text(ds.Time[idx], ymax, str(counter))
-    fig.canvas.draw()
-
-    # Mark the corresponding position on the flight path
-    fig = plt.figure(2)
-    plt.text(ds.LON_OXTS[idx], ds.LAT_OXTS[idx], str(counter))
-    fig.canvas.draw()
-
-    return
+def format_timedelta(ds, idx):
+    return str(datetime.timedelta(seconds=float(ds.Time[idx])))
 
 
 if __name__ == '__main__':
