@@ -2,12 +2,16 @@
 
 Plot a variable of interest and the flight track then click on either figure
 to mark the corresponding points on both figures.
+
+> python -m twinotter.plots.interactive_flight_track /path/to/data
 """
 import datetime
+import tkinter
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import SpanSelector
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import cartopy.crs as ccrs
 
 from twinotter import load_flight
@@ -17,19 +21,26 @@ from twinotter.plots import plot_flight_path
 def main(flight_data_path):
     ds = load_flight(flight_data_path)
 
+    root = tkinter.Tk()
+    root.wm_title("Interactive Flight Track")
+
     # Plot the main variable of interest
     # Change this to whatever variable you want or add additional figures here
     fig1, ax1a = plt.subplots()
-    ds.ROLL_OXTS.plot(linestyle='--', alpha=0.5)
+    ax1a.plot(ds.Time, ds.ROLL_OXTS, linestyle='--', alpha=0.5)
+    ax1a.set_label('Roll Angle')
     ax1b = ax1a.twinx()
     ax1b.plot(ds.Time, ds.ALT_OXTS/1000)
     ax1b.set_ylabel('Altitude (km)')
 
     # Plot flight path with colours for altitude
-    fig2, ax = plt.subplots(subplot_kw=dict(projection=ccrs.PlateCarree()),)
-    ax.gridlines(draw_labels=True)
-    ax.coastlines()
-    plot_flight_path(ax=ax, ds=ds)
+    fig2, ax2 = plt.subplots(subplot_kw=dict(projection=ccrs.PlateCarree()),)
+    ax2.gridlines(draw_labels=True)
+    ax2.coastlines()
+    plot_flight_path(ax=ax2, ds=ds)
+
+    fig1.tight_layout()
+    fig2.tight_layout()
 
     # Save flight leg start and end points
     leg_times = []
@@ -47,10 +58,32 @@ def main(flight_data_path):
 
         return
 
+    # Add the figures to as TK window
+    canvas = FigureCanvasTkAgg(fig1, master=root)
+    canvas.draw()
+    canvas.get_tk_widget().grid(row=0, column=0)
+
+    canvas = FigureCanvasTkAgg(fig2, master=root)
+    canvas.draw()
+    canvas.get_tk_widget().grid(row=0, column=1)
+
+    # Add a span selector to the time-height plot to highlight legs
     selector = SpanSelector(
         ax1b, highlight_leg, direction='horizontal')
 
-    plt.show()
+    def _quit():
+        root.quit()  # stops mainloop
+        root.destroy()  # this is necessary on Windows to prevent
+        # Fatal Python Error: PyEval_RestoreThread: NULL tstate
+
+    button = tkinter.Button(master=root, text="Quit", command=_quit)
+    button.grid(row=1, column=1)
+
+    textbox = tkinter.Text(master=root)
+    textbox.grid(row=1, column=0)
+
+    tkinter.mainloop()
+
     return
 
 
