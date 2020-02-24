@@ -7,12 +7,14 @@ to mark the corresponding points on both figures.
 """
 import datetime
 import tkinter
+from tkinter import filedialog
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import SpanSelector
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import cartopy.crs as ccrs
+import pandas as pd
 
 from twinotter import load_flight
 from twinotter.plots import plot_flight_path
@@ -43,7 +45,7 @@ def main(flight_data_path):
     fig2.tight_layout()
 
     # Save flight leg start and end points
-    leg_times = []
+    leg_info = pd.DataFrame(columns=['Label', 'Start', 'End'])
 
     # Add the figures to as TK window
     canvas = FigureCanvasTkAgg(fig1, master=root)
@@ -58,13 +60,24 @@ def main(flight_data_path):
     button_area = tkinter.Canvas(root)
     button_area.grid(row=1, column=1)
 
+    def _save():
+        filename = filedialog.asksaveasfilename()
+        leg_info.to_csv(filename)
+
+        return
+
+    save_button = tkinter.Button(master=button_area, text="Save", command=_save)
+    save_button.grid(row=0, column=0)
+
     def _quit():
         root.quit()  # stops mainloop
         root.destroy()  # this is necessary on Windows to prevent
         # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
-    button = tkinter.Button(master=button_area, text="Quit", command=_quit)
-    button.grid(row=0, column=1)
+        return
+
+    quit_button = tkinter.Button(master=button_area, text="Quit", command=_quit)
+    quit_button.grid(row=0, column=1)
 
     # Use an Entry textbox to label the legs
     textbox = tkinter.Entry(master=root)
@@ -74,16 +87,19 @@ def main(flight_data_path):
     # Drag mouse from the start to the end of a leg and save the corresponding
     # times
     def highlight_leg(start, end):
+        nonlocal leg_info
+
         label = textbox.get()
         idx_start = find_nearest_point(start, ds.Time)
         idx_end = find_nearest_point(end, ds.Time)
 
-        leg_times.append([
-            label,
-            format_timedelta(ds, idx_start),
-            format_timedelta(ds, idx_end)])
+        leg_info = leg_info.append({
+            'Label': label,
+            'Start': format_timedelta(ds, idx_start),
+            'End': format_timedelta(ds, idx_end)
+        }, ignore_index=True)
 
-        print(leg_times)
+        print(leg_info)
 
         return
 
