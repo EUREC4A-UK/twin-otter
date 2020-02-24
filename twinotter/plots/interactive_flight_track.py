@@ -45,19 +45,6 @@ def main(flight_data_path):
     # Save flight leg start and end points
     leg_times = []
 
-    # Drag mouse from the start to the end of a leg and save the corresponding
-    # times
-    def highlight_leg(start, end):
-        idx_start = find_nearest_point(start, ds.Time)
-        idx_end = find_nearest_point(end, ds.Time)
-
-        leg_times.append([format_timedelta(ds, idx_start),
-                          format_timedelta(ds, idx_end)])
-
-        print(leg_times)
-
-        return
-
     # Add the figures to as TK window
     canvas = FigureCanvasTkAgg(fig1, master=root)
     canvas.draw()
@@ -67,20 +54,41 @@ def main(flight_data_path):
     canvas.draw()
     canvas.get_tk_widget().grid(row=0, column=1)
 
-    # Add a span selector to the time-height plot to highlight legs
-    selector = SpanSelector(
-        ax1b, highlight_leg, direction='horizontal')
+    # Add an area for buttons beneath the figures
+    button_area = tkinter.Canvas(root)
+    button_area.grid(row=1, column=1)
 
     def _quit():
         root.quit()  # stops mainloop
         root.destroy()  # this is necessary on Windows to prevent
         # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
-    button = tkinter.Button(master=root, text="Quit", command=_quit)
-    button.grid(row=1, column=1)
+    button = tkinter.Button(master=button_area, text="Quit", command=_quit)
+    button.grid(row=0, column=1)
 
-    textbox = tkinter.Text(master=root)
+    # Use an Entry textbox to label the legs
+    textbox = tkinter.Entry(master=root)
     textbox.grid(row=1, column=0)
+
+    # Add a span selector to the time-height plot to highlight legs
+    # Drag mouse from the start to the end of a leg and save the corresponding
+    # times
+    def highlight_leg(start, end):
+        label = textbox.get()
+        idx_start = find_nearest_point(start, ds.Time)
+        idx_end = find_nearest_point(end, ds.Time)
+
+        leg_times.append([
+            label,
+            format_timedelta(ds, idx_start),
+            format_timedelta(ds, idx_end)])
+
+        print(leg_times)
+
+        return
+
+    selector = SpanSelector(
+        ax1b, highlight_leg, direction='horizontal')
 
     tkinter.mainloop()
 
