@@ -49,11 +49,14 @@ def main(flight_data_path):
     leg_info = pd.DataFrame(columns=['Label', 'Start', 'End'])
 
     # Add the figures to as TK window
-    canvas = FigureCanvasTkAgg(fig1, master=root)
+    figure_area = tkinter.Frame()
+    figure_area.grid(row=0, column=0, columnspan=2)
+
+    canvas = FigureCanvasTkAgg(fig1, master=figure_area)
     canvas.draw()
     canvas.get_tk_widget().grid(row=0, column=0)
 
-    canvas = FigureCanvasTkAgg(fig2, master=root)
+    canvas = FigureCanvasTkAgg(fig2, master=figure_area)
     canvas.draw()
     canvas.get_tk_widget().grid(row=0, column=1)
 
