@@ -103,8 +103,6 @@ def main(flight_data_path):
             'End': format_timedelta(ds, idx_end)
         }, ignore_index=True)
 
-        print(leg_info)
-
         return
 
     selector = SpanSelector(
