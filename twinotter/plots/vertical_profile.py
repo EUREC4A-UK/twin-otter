@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from metpy.plots import SkewT
 
-import util
+import twinotter
 
 
 def main():
@@ -9,7 +9,7 @@ def main():
     leg_type = 'profile'
     leg_number = 0
 
-    ds = util.load_flight(flight_number)
+    ds = twinotter.load_flight(flight_number)
     p, T, Td, u, v = extract_data(ds, flight_number, leg_type, leg_number)
 
     skewt(p, T, Td, u, v)
@@ -20,7 +20,7 @@ def main():
 
 
 def extract_data(ds, flight_number, leg_type, leg_number):
-    idx = util.flight_leg_index(flight_number, leg_type, leg_number)
+    idx = twinotter.flight_leg_index(flight_number, leg_type, leg_number)
     p = ds.PS_AIR[idx]
     T = ds.TAT_ND_R[idx] - 273.15
     Td = ds.TDEW_BUCK[idx] - 273.15

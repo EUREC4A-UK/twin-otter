@@ -1,7 +1,9 @@
 from pathlib import Path
 import re
+import datetime
 
-import pandas as pd
+import parse
+import numpy as np
 import xarray as xr
 
 
@@ -77,11 +79,11 @@ def open_masin_dataset(filename, meta, debug=False):
     return ds
 
 
-def flight_leg_index(flight_number, leg_name, leg_number=0):
+def flight_leg_times(flight_legs, leg_name, leg_number=0):
     """Get a slice representing a single section of the flight
 
     Args:
-        flight_number (int):
+        flight_legs (pandas.DataFrame):
         leg_name (str):
         leg_number (int): For multiple of the same type of leg within a flight,
             select which leg you want. Default is zero
@@ -89,12 +91,29 @@ def flight_leg_index(flight_number, leg_name, leg_number=0):
     Returns:
         slice:
     """
-    legs = pd.read_csv('obs/legs_flight{}.csv'.format(flight_number))
-    idx = legs[legs['Type'] == leg_name].index[leg_number]
-    start = legs['Start'][idx]
-    end = legs['End'][idx]
+    idx = flight_legs[flight_legs['Label'] == leg_name].index[leg_number]
+    start = flight_legs['Start'][idx]
+    end = flight_legs['End'][idx]
 
-    return slice(start, end)
+    return start, end
+
+
+def index_from_time(timestr, time):
+    """
+
+    Args:
+        timestr (str): A string representing time of day formatted as "HH:MM:SS"
+        time (array):
+
+    Returns:
+        int:
+    """
+    HH, MM, SS = parse.parse("{:d}:{:d}:{:d}", timestr)
+    dt = datetime.timedelta(hours=HH, minutes=MM, seconds=SS)
+
+    idx = int(np.where(time == dt.total_seconds())[0])
+
+    return idx
 
 
 def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data_path=None):
