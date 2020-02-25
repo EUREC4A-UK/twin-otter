@@ -24,7 +24,8 @@ def main(flight_data_path):
     ds = load_flight(flight_data_path)
 
     root = tkinter.Tk()
-    root.wm_title("Interactive Flight Track")
+    root.wm_title("Interactive Flight Track: Flight {}".format(
+        ds.attrs['flight_number']))
 
     # Plot the main variable of interest
     # Change this to whatever variable you want or add additional figures here
@@ -61,7 +62,7 @@ def main(flight_data_path):
     button_area.grid(row=1, column=1)
 
     def _save():
-        filename = filedialog.asksaveasfilename()
+        filename = filedialog.asksaveasfilename(initialfile="flight-legs.csv")
         leg_info.to_csv(filename)
 
         return
