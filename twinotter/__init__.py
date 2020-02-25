@@ -49,7 +49,7 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
     else:
         filename = files[0]
 
-    ds = open_masin_dataset(filename, meta, debug=debug)
+    ds = open_masin_dataset(filename, meta[filename], debug=debug)
 
     return ds
 
