@@ -5,8 +5,16 @@ import twinotter
 from twinotter.plots import vertical_profile
 
 
-def main(flight_data_path, legs_file):
-    generate(flight_data_path, legs_file)
+def main():
+    import argparse
+
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('flight_data_path')
+    argparser.add_argument('legs_file')
+
+    args = argparser.parse_args()
+
+    generate(flight_data_path=args.flight_data_path, legs_file=args.legs_file)
 
     return
 
@@ -106,12 +114,4 @@ def set_axes_and_labels(xmin, xmax, prefix, figure_name):
 
 
 if __name__ == '__main__':
-    import argparse
-
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_data_path')
-    argparser.add_argument('legs_file')
-
-    args = argparser.parse_args()
-
-    main(flight_data_path=args.flight_data_path, legs_file=args.legs_file)
+    main()

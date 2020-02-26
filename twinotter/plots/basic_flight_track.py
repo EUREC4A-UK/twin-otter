@@ -20,13 +20,27 @@ lat = 13 + (18/60)
 lon = -(57 + (43/60))
 r = 1
 
+
 def _compute_radius(ortho, radius_degrees):
     phi1 = lat + radius_degrees if lat <= 0 else lat - radius_degrees
     _, y1 = ortho.transform_point(lon, phi1, ccrs.PlateCarree())
     return abs(y1)
 
 
-def main(flight_data_path):
+def main():
+    import argparse
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('flight_data_path', nargs="+")
+
+    args = argparser.parse_args()
+
+    for flight_data_path in args.flight_data_path:
+        generate(flight_data_path=flight_data_path)
+
+    return
+
+
+def generate(flight_data_path):
     flight_data_path = Path(flight_data_path)
 
     ax = draw_features()
@@ -81,11 +95,4 @@ def draw_features():
 
 
 if __name__ == '__main__':
-    import argparse
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_data_path', nargs="+")
-
-    args = argparser.parse_args()
-
-    for flight_data_path in args.flight_data_path:
-        main(flight_data_path=flight_data_path)
+    main()

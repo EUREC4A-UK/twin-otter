@@ -16,7 +16,22 @@ import twinotter
 time_format = "{hours:02d}:{minutes:02d}:{seconds:02d} UTC"
 
 
-def main(flight_data_path, flight_summary_path):
+def main():
+    import argparse
+
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('flight_data_path')
+    argparser.add_argument('flight_summary_path')
+
+    args = argparser.parse_args()
+
+    main2(flight_data_path=args.flight_data_path,
+          flight_summary_path=args.flight_summary_path)
+
+    return
+
+
+def main2(flight_data_path, flight_summary_path):
     # Get a list of netCDF files in the obs/ folder which match the expected
     # file pattern
     fn_pattern = twinotter.MASIN_CORE_FORMAT.format(
@@ -99,13 +114,4 @@ def extract_time(dataset, name):
 
 
 if __name__ == '__main__':
-    import argparse
-
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_data_path')
-    argparser.add_argument('flight_summary_path')
-
-    args = argparser.parse_args()
-
-    main(flight_data_path=args.flight_data_path,
-         flight_summary_path=args.flight_summary_path)
+    main()
