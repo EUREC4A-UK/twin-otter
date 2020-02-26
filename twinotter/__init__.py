@@ -38,16 +38,20 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
         meta[file] = re.match(MASIN_CORE_RE, file.name).groupdict()
 
     if len(files) == 0:
-        raise Exception("Couldn't find MASIN data in `{}/MASIN`, please place"
-                        " data there.".format(flight_data_path))
+        raise FileNotFoundError(
+            "Couldn't find MASIN data in `{}/MASIN`, "
+            "please place data there.".format(flight_data_path)
+        )
 
     if len(files) > 1:
         if revision == "*":
-            filename = sorted(files, key=lambda v: meta[v]['revision'], reverse=True)[0]
+            filename = sorted(
+                files, key=lambda v: meta[v]['revision'], reverse=True)[0]
         else:
-            raise Exception("More than one MASIN file was found: `{}`".format(
-                ", ".join(files)
-            ))
+            raise FileExistsError(
+                "More than one MASIN file was found: `{}`".format(
+                    ", ".join(files))
+            )
     else:
         filename = files[0]
 
