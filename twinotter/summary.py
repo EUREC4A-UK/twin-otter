@@ -2,7 +2,7 @@
 Check a directory for core_masin netCDF files and generate a summary .csv file
 of the flights in these files
 
-> python -m twinotter.generate_summary /path/to/data /path/to/summary.csv
+> python -m twinotter.summary /path/to/data /path/to/summary.csv
 """
 import datetime
 from pathlib import Path
@@ -25,13 +25,13 @@ def main():
 
     args = argparser.parse_args()
 
-    main2(flight_data_path=args.flight_data_path,
-          flight_summary_path=args.flight_summary_path)
+    generate(flight_data_path=args.flight_data_path,
+             flight_summary_path=args.flight_summary_path)
 
     return
 
 
-def main2(flight_data_path, flight_summary_path):
+def generate(flight_data_path, flight_summary_path):
     # Get a list of netCDF files in the obs/ folder which match the expected
     # file pattern
     fn_pattern = twinotter.MASIN_CORE_FORMAT.format(
