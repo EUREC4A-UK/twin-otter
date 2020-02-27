@@ -20,7 +20,19 @@ from twinotter import load_flight
 from twinotter.plots import plot_flight_path
 
 
-def main(flight_data_path):
+def main():
+    import argparse
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('flight_data_path')
+
+    args = argparser.parse_args()
+
+    start_gui(flight_data_path=args.flight_data_path)
+
+    return
+
+
+def start_gui(flight_data_path):
     ds = load_flight(flight_data_path)
 
     root = tkinter.Tk()
@@ -122,10 +134,4 @@ def format_timedelta(ds, idx):
 
 
 if __name__ == '__main__':
-    import argparse
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_data_path')
-
-    args = argparser.parse_args()
-
-    main(flight_data_path=args.flight_data_path)
+    main()
