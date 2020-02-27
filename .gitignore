@@ -1,6 +1,7 @@
 .*.sw*
 .ipynb_checkpoints/
 .idea/
+docs/build
 
 *.nc
 *.png
