@@ -56,32 +56,37 @@ def plot_all(ds, legs, leg_type, plot_func):
 def plot_leg(ds, idx, prefix):
     xmin, xmax = ds.Time[idx.start], ds.Time[idx.stop]
 
+    fig, axes = plt.subplots(nrows=5, ncols=1, sharex=True, figsize=[16, 15])
+
     # Temperature and Dewpoint
-    ds.TAT_ND_R[idx].plot(label=r'Temperature (K)')
-    ds.TDEW_BUCK[idx].plot(label=r'Dewpoint Temperature (K)')
-    set_axes_and_labels(xmin, xmax, prefix, 'temperature')
-
-    # Shortwave radiation
-    ds.SW_DN_C[idx].plot(label=r'SW Downwelling Irradiance (W m$^{-2}$)')
-    ds.SW_UP_C[idx].plot(label=r'SW Upwelling Irradiance (W m$^{-2}$)')
-    set_axes_and_labels(xmin, xmax, prefix, 'sw_fluxes')
-
-    # Longwave radiation
-    ds.LW_DN_C[idx].plot(label=r'LW Downwelling Irradiance (W m$^{-2}$)')
-    ds.LW_UP_C[idx].plot(label=r'LW Upwelling Irradiance (W m$^{-2}$)')
-    set_axes_and_labels(xmin, xmax, prefix, 'lw_fluxes')
-
-    # CPC Concentration
-    ds.CPC_CONC[idx].plot(label=r'CPC Concentration (m$^{-3}$)')
-    set_axes_and_labels(xmin, xmax, prefix, 'cpc')
+    ds.TAT_ND_R[idx].plot(ax=axes[0], label=r'True')
+    ds.TDEW_BUCK[idx].plot(ax=axes[0], label=r'Dewpoint')
+    add_labels(axes[0], 'Temperature (K)')
 
     # Velocities
-    ds.U_OXTS[idx].plot(label=r'Zonal Velocity (m s$^{-1}$)')
-    ds.V_OXTS[idx].plot(label=r'Meridional Velocity (m s$^{-1}$)')
-    set_axes_and_labels(xmin, xmax, prefix, 'velocities')
+    ds.U_OXTS[idx].plot(ax=axes[1], label=r'Zonal')
+    ds.V_OXTS[idx].plot(ax=axes[1], label=r'Meridional')
+    add_labels(axes[1], 'Velocity (m s$^{-1}$)')
 
-    ds.W_OXTS[idx].plot(label=r'Vertical Velocity (m s$^{-1}$)')
-    set_axes_and_labels(xmin, xmax, prefix, 'vertical_wind')
+    ds.W_OXTS[idx].plot(ax=axes[2])
+    add_labels(axes[2], 'Vertical Velocity (m s$^{-1}$)')
+
+    # Shortwave radiation
+    ds.SW_DN_C[idx].plot(ax=axes[3], label=r'SW Downwelling')
+    ds.SW_UP_C[idx].plot(ax=axes[3], label=r'SW Upwelling')
+
+    # Longwave radiation
+    ds.LW_DN_C[idx].plot(ax=axes[3], label=r'LW Downwelling')
+    ds.LW_UP_C[idx].plot(ax=axes[3], label=r'LW Upwelling')
+    add_labels(axes[3], 'Irradiance (W m$^{-2}$)')
+
+    # CPC Concentration
+    ds.CPC_CONC[idx].plot(ax=axes[4])
+    add_labels(axes[4], 'CPC Concentration (m$^{-3}$)')
+
+    plt.xlim(xmin, xmax)
+    plt.savefig('{}_{}.png'.format(prefix, 'quicklook'))
+    plt.close()
 
     return
 
@@ -101,14 +106,10 @@ def plot_profile(dataset, idx, prefix):
     return
 
 
-def set_axes_and_labels(xmin, xmax, prefix, figure_name):
-    plt.xlim(xmin, xmax)
-    plt.xlabel('')
-    plt.ylabel('')
-    plt.legend()
-
-    plt.savefig('{}_{}.png'.format(prefix, figure_name))
-    plt.close()
+def add_labels(ax, ylabel):
+    ax.set_xlabel('')
+    ax.set_ylabel(ylabel)
+    ax.legend()
 
     return
 
