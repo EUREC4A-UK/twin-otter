@@ -45,7 +45,8 @@ def load_all(data_path):
     """
     Load all CCN files in `data_path` and combine into single xarray.Dataset
     """
-    ds = xr.concat([
-        load_csv(fn=fn) for fn in Path(data_path).glob('*.csv')
-    ], dim='time')
-    return ds
+    all_ds = [load_csv(fn=fn) for fn in Path(data_path).glob('*.csv')]
+    if len(all_ds) == 0:
+        raise Exception("No CCN data found in `{}`".format(data_path))
+    else:
+        return xr.concat(all_ds, dim='time')

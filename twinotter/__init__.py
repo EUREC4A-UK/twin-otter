@@ -15,15 +15,24 @@ def _monkey_patch_xr_load():
     # by the CF-convections units should always be a string
     # http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#units
     # fix here as it breaks cf-convention loading in xarray otherwise
-    import xarray.conventions
 
-    _decode_old = xarray.conventions.decode_cf_variable
-    def _decode_cf_variable(name, var, *args, **kwargs):
+    def _fix_var(var):
         if var.attrs['units'] == 1:
             var.attrs['units'] = "1"
-        return _decode_old(name=name, var=var, *args, **kwargs)
 
-    xarray.conventions.decode_cf_variable = _decode_cf_variable
+    _decode_variable_old = xr.conventions.decode_cf_variable
+    def _decode_cf_variable(name, var, *args, **kwargs):
+        _fix_var(var)
+        return _decode_variable_old(name=name, var=var, *args, **kwargs)
+    xr.conventions.decode_cf_variable = _decode_cf_variable
+
+    _decode_variables_old = xr.conventions.decode_cf_variables
+    def _decode_cf_variables(variables, *args, **kwargs):
+        for var in variables:
+            _fix_var(variables[var])
+        return _decode_variables_old(variables, *args, **kwargs)
+    xr.conventions.decode_cf_variables = _decode_cf_variables
+
 
 def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=False,
                 filter_invalid=True):
