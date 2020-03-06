@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import find_packages
-from numpy.distutils.core import setup, Extension
+import setuptools
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
@@ -20,7 +19,7 @@ setup_requirements = [ ]
 
 test_requirements = [ ]
 
-setup(
+setuptools.setup(
     author="eurec4a",
     author_email='',
     classifiers=[
@@ -38,7 +37,7 @@ setup(
     include_package_data=True,
     keywords='',
     name='twinotter',
-    packages=find_packages(include=['twinotter']),
+    packages=setuptools.find_packages(include=['twinotter']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
