@@ -77,7 +77,8 @@ def start_gui(flight_data_path):
     button_area.grid(row=1, column=1)
 
     def _save():
-        filename = filedialog.asksaveasfilename(initialfile="flight-legs.csv")
+        filename = filedialog.asksaveasfilename(
+            initialfile="flight{}-legs.csv".format(ds.attrs['flight_number']))
         leg_info.to_csv(filename)
 
         return
