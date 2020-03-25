@@ -3,16 +3,14 @@ Projection of the HALO circle adapted from AJDawson's answer on stackoverflow
 https://stackoverflow.com/questions/52105543/drawing-circles-with-cartopy-in-orthographic-projection
 """
 
-import numpy as np
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from pathlib import Path
 from datetime import datetime
 
 from twinotter import load_flight
-from twinotter.plots import plot_flight_path
+from twinotter import plots
+from twinotter.external import eurec4a
 
 
 # HALO circle attributes
@@ -43,13 +41,20 @@ def main():
 def generate(flight_data_path):
     flight_data_path = Path(flight_data_path)
 
-    ax = draw_features()
-    ds = load_flight(flight_data_path, debug=True)
-    plot_flight_path(ax=ax, ds=ds)
+    # create figure
+    bbox = [-60, -56.4, 12, 14.4]
+    domain_aspect = (bbox[3] - bbox[2]) / (bbox[1] - bbox[0])
+    fig = plt.figure(figsize=(11., domain_aspect * 10), dpi=96)
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    add_features(ax)
+    ax.set_extent(bbox, crs=ccrs.PlateCarree())
+    fig.tight_layout()
 
-    fig = ax.figure
+    ds = load_flight(flight_data_path, debug=True)
+    plots.plot_flight_path(ax=ax, ds=ds)
+
     caption = "created {} from {}".format(datetime.now(), ds.source_file)
-    ax.text(0.0, 0.0, caption, transform=fig.transFigure)
+    ax.text(0.0, 0.0, caption, transform=plt.gcf().transFigure)
 
     if flight_data_path.is_file():
         path_fig = flight_data_path.parent
@@ -61,37 +66,17 @@ def generate(flight_data_path):
     plt.savefig(path_fig, bbox_inches='tight')
     print("Saved flight track to `{}`".format(str(path_fig)))
 
+    return
 
-def draw_features():
-    # create figure
-    bbox = [-60, -56.4, 12, 14.4]
-    domain_aspect = (bbox[3]-bbox[2])/(bbox[1]-bbox[0])
-    fig = plt.figure(figsize=(11., domain_aspect*10), dpi=96)
-    ax = plt.axes(projection=ccrs.PlateCarree())
 
+def add_features(ax):
     # Shade land and sea
-    ax.imshow(np.tile(
-        np.array([[cfeature.COLORS['water'] * 255]], dtype=np.uint8),[2, 2, 1]),
-        origin='upper', transform=ccrs.PlateCarree(), extent=[-180, 180, -180, 180])
-    ax.add_feature(
-        cfeature.NaturalEarthFeature('physical', 'land', '10m',
-                                     edgecolor='black',
-                                     facecolor=cfeature.COLORS['land']))
-    ax.gridlines(linestyle='--', color='black', draw_labels=True)
-
+    plots.add_land_and_sea(ax)
 
     # Add HALO circle
-    # Define the projection used to display the circle:
-    proj = ccrs.Orthographic(central_longitude=lon, central_latitude=lat)
-    # Compute the required radius in projection native coordinates:
-    r_ortho = _compute_radius(proj, r)
-    ax.add_patch(mpatches.Circle(xy=[lon, lat], radius=r_ortho, color='red',
-                                 alpha=0.3, transform=proj, zorder=30, fill=False))
+    eurec4a.add_halo_circle(ax)
 
-    ax.set_extent(bbox, crs=ccrs.PlateCarree())
-    fig.tight_layout()
-
-    return ax
+    return
 
 
 if __name__ == '__main__':

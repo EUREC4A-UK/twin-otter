@@ -1,9 +1,10 @@
-import cartopy.crs as ccrs
-import xarray as xr
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import xarray as xr
 
 
 def plot_flight_path(ax, ds):
@@ -15,7 +16,7 @@ def plot_flight_path(ax, ds):
     cbar.set_label('Altitude (km)')
 
     ax.set_xlabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
-    ax.set_ylabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
+    ax.set_ylabel(xr.plot.utils.label_from_attrs(ds.LAT_OXTS))
 
     # Add marker for start and end positions
     ax.text(ds.LON_OXTS[0], ds.LAT_OXTS[0], 'S', transform=ccrs.PlateCarree())
@@ -84,3 +85,26 @@ def colored_line_plot(ax, x, y, color, vmin=None, vmax=None, cmap='gray',
         ax.autoscale()
 
     return lc
+
+
+def add_land_and_sea(ax):
+    # Shade land and sea
+    ax.imshow(
+        np.tile(
+            np.array([[cfeature.COLORS['water'] * 255]], dtype=np.uint8),
+            [2, 2, 1]),
+        origin='upper',
+        transform=ccrs.PlateCarree(),
+        extent=[-180, 180, -180, 180])
+
+    ax.add_feature(cfeature.NaturalEarthFeature(
+        'physical',
+        'land',
+        '10m',
+        edgecolor='black',
+        facecolor=cfeature.COLORS['land']
+    ))
+
+    ax.gridlines(linestyle='--', color='black', draw_labels=True)
+
+    return
