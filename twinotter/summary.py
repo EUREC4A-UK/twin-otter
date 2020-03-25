@@ -104,6 +104,16 @@ def generate(flight_data_path, flight_summary_path):
     return
 
 
+def extract_date(dataset):
+    # Get date, flight number, revision and frequency from the filename
+    flight_info = parse.parse(twinotter.MASIN_CORE_FORMAT,
+                              dataset.attrs['source_file'].name)
+
+    date = flight_info['date']
+    YYYY, MM, DD = int(date[0:4]), int(date[4:6]), int(date[6:8])
+    return datetime.datetime(YYYY, MM, DD)
+
+
 def extract_time(dataset, name):
     time = dataset.attrs[name]
 

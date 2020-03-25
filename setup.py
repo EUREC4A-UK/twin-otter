@@ -13,11 +13,13 @@ requirements = [
     'metpy',
     'cartopy',
     'parse',
+    'worldview_dl',
+    'docopt',
 ]
 
-setup_requirements = [ ]
+setup_requirements = []
 
-test_requirements = [ ]
+test_requirements = []
 
 setuptools.setup(
     author="eurec4a",
