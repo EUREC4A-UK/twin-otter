@@ -32,7 +32,7 @@ def main():
 def get_images(
         flight_data_path,
         layer=goes.default_layer,
-        image_resolution=goes.default_resolution,
+        image_resolution=goes.default_spatial_resolution,
         bbox=goes.default_bbox):
     """Download all GOES images during the time of the specified flight
 

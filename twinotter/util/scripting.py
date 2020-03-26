@@ -1,7 +1,7 @@
 import re
 
 
-def _parse_docopt_arguments(function, __doc__):
+def parse_docopt_arguments(function, __doc__):
     """
 
     Args:
