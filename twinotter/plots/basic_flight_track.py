@@ -1,6 +1,5 @@
 """
-Projection of the HALO circle adapted from AJDawson's answer on stackoverflow
-https://stackoverflow.com/questions/52105543/drawing-circles-with-cartopy-in-orthographic-projection
+> python -m twinotter.plots.basic_flight_track /path/to/data
 """
 
 import cartopy.crs as ccrs
@@ -11,18 +10,6 @@ from datetime import datetime
 from twinotter import load_flight
 from twinotter import plots
 from twinotter.external import eurec4a
-
-
-# HALO circle attributes
-lat = 13 + (18/60)
-lon = -(57 + (43/60))
-r = 1
-
-
-def _compute_radius(ortho, radius_degrees):
-    phi1 = lat + radius_degrees if lat <= 0 else lat - radius_degrees
-    _, y1 = ortho.transform_point(lon, phi1, ccrs.PlateCarree())
-    return abs(y1)
 
 
 def main():
