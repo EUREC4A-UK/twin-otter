@@ -46,7 +46,9 @@ def generate(flight_data_path, goes_path=".", output_path="."):
 
     # Loop over satellite images
     n = 0
-    time = start
+    # Start on the minute
+    time = twinotter.util.round_datetime(
+        start, datetime.timedelta(minutes=1), type='ceil')
     while time <= end:
         # Load the current satellite image
         goes_data = goes.load_nc(goes_path, sat_image_time)
@@ -98,6 +100,7 @@ def generate(flight_data_path, goes_path=".", output_path="."):
 
             path_fig = output_path + '/' + 'flight{}_track_frame_{:03d}.png'.format(
                 dataset.attrs['flight_number'], n)
+            plt.text(0, 0, str(time), transform=ax.transAxes, fontdict=dict(color='green'))
             plt.savefig(path_fig, bbox_inches='tight')
             print("Saved flight track to `{}`".format(str(path_fig)))
             plt.close()
