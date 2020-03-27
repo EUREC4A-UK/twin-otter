@@ -4,9 +4,14 @@ import datetime
 
 import parse
 import numpy as np
+import xarray as xr
 from osgeo import gdal
 
-nc_filename = "clavrx_OR_ABI-L1b-RadF-M6C01_G16_s{year:04d}{day:03d}{hour:02d}{minute:02d}{something:03d}_BARBADOS-2KM-FD.level2.nc"
+
+# Filenames of netCDF files on the AERIS server
+nc_filename = "clavrx_OR_ABI-L1b-RadF-M6C01_G16_s" \
+              "{year:04d}{day:03d}{hour:02d}{minute:02d}" \
+              "{something}_BARBADOS-2KM-FD.level2.nc"
 
 # GOES data parameters
 filename_format = '{layer}_{year:04d}-{month:02d}-{day:02d}_{hour:02d}-{minute:02d}.tiff'
@@ -75,3 +80,38 @@ def load_image(filename):
     lats = y_origin + np.arange(0, nr) * pixel_height
 
     return lons, lats, data
+
+
+def load_nc(path, time):
+    """Load the netCDF dataset corresponding to the give time
+
+    Args:
+        path (str):
+        time (datetime.datetime):
+
+    Returns:
+        xarray.dataset
+    """
+    filename = nc_filename.format(
+        year=time.year,
+        day=time.timetuple().tm_yday,
+        hour=time.hour,
+        minute=time.minute,
+        something='*'
+    )
+
+    # Find matching filenames in the GOES folder
+    file_path = list(pathlib.Path(path).rglob(filename))
+
+    if len(file_path) == 0:
+        raise FileNotFoundError('No GOES data found in {} for {}'.format(path, time))
+    elif len(file_path) > 1:
+        raise FileExistsError(
+            'More than one file found in {} for {}'.format(path, time))
+
+    dataset = xr.load_dataset(str(file_path[0]))
+
+    # Remove values where the coordinates are NaNs
+    dataset = dataset.where(~dataset.longitude.isnull(), drop=True)
+
+    return dataset

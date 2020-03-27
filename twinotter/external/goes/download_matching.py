@@ -39,7 +39,7 @@ def get_images(
     Args:
         flight_data_path: The path to the MASIN flight data file or directory
         layer: The GOES image layer to use. Also used as the prefix of the filename
-        image_resolution:
+        image_resolution (float):
         bbox: The spatial area to use in the format [S W N E] with units degrees
     """
     dataset = twinotter.load_flight(flight_data_path)

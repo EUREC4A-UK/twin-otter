@@ -11,6 +11,9 @@ import xarray as xr
 MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
 MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
 
+# A nice way of formatting the flight time
+time_of_day_format = "{hours:02d}:{minutes:02d}:{seconds:02d}"
+
 
 def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=False):
     # If a path to a netCDF file is specified just load it
@@ -107,13 +110,12 @@ def index_from_time(timestr, time):
 
     Args:
         timestr (str): A string representing time of day formatted as "HH:MM:SS"
-        time (array):
+        time (array): The time array from the dataset
 
     Returns:
         int:
     """
-    HH, MM, SS = parse.parse("{:d}:{:d}:{:d}", timestr)
-    dt = datetime.timedelta(hours=HH, minutes=MM, seconds=SS)
+    dt = datetime.timedelta(**parse.parse(time_of_day_format, timestr).named)
 
     idx = int(np.where(time == dt.total_seconds())[0])
 
