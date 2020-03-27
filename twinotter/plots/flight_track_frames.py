@@ -48,7 +48,7 @@ def generate(flight_data_path, goes_path=".", output_path="."):
     n = 0
     # Start on the minute
     time = twinotter.util.round_datetime(
-        start, datetime.timedelta(minutes=1), type='ceil')
+        start, datetime.timedelta(minutes=1), mode='ceil')
     while time <= end:
         # Load the current satellite image
         goes_data = goes.load_nc(goes_path, sat_image_time)
