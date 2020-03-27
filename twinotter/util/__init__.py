@@ -2,7 +2,7 @@ import datetime
 
 
 def round_datetime(time, resolution):
-    """Round the time by resolution (floor rounding)
+    """Round the time by resolution
 
     Args:
         time (datetime.datetime):
@@ -19,4 +19,9 @@ def round_datetime(time, resolution):
         microseconds=time.microsecond
     ) % resolution
 
-    return time - excess
+    if excess > resolution / 2:
+        # Round up
+        return time - excess + resolution
+    else:
+        # Round down
+        return time - excess

@@ -105,17 +105,19 @@ def flight_leg_times(flight_legs, leg_name, leg_number=0):
     return start, end
 
 
-def index_from_time(timestr, time):
+def index_from_time(dt, time):
     """
 
     Args:
-        timestr (str): A string representing time of day formatted as "HH:MM:SS"
+        dt (str | datetime.timedelta): A string representing time of day formatted as
+            "HH:MM:SS"
         time (array): The time array from the dataset
 
     Returns:
         int:
     """
-    dt = datetime.timedelta(**parse.parse(time_of_day_format, timestr).named)
+    if type(dt) is str:
+        dt = datetime.timedelta(**parse.parse(time_of_day_format, timestr).named)
 
     idx = int(np.where(time == dt.total_seconds())[0])
 

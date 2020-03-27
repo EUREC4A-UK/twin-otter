@@ -14,7 +14,8 @@ Options:
     -o --output_path
 
 """
-import numpy as np
+import datetime
+
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 
@@ -30,63 +31,79 @@ def main():
 
 
 def generate(flight_data_path, goes_path=".", output_path="."):
+    substep = datetime.timedelta(minutes=1)
+
     # Load flight data
     dataset = twinotter.load_flight(flight_data_path)
 
     # Get start and end time for satellite data from flight
+    start = summary.extract_time(dataset, 'time_coverage_start')
+    end = summary.extract_time(dataset, 'time_coverage_end')
+
+    # Get corresponding satellite time for start
     date = summary.extract_date(dataset)
+    sat_image_time = twinotter.util.round_datetime(date + start, goes.time_resolution)
 
-    start = date + summary.extract_time(dataset, 'time_coverage_start')
-    end = date + summary.extract_time(dataset, 'time_coverage_end')
-
-    start = twinotter.util.round_datetime(start, goes.time_resolution)
-    end = twinotter.util.round_datetime(end, goes.time_resolution) + goes.time_resolution
-
-    time = start
     # Loop over satellite images
     n = 0
+    time = start
     while time <= end:
-        goes_data = goes.load_nc(goes_path, time)
+        # Load the current satellite image
+        goes_data = goes.load_nc(goes_path, sat_image_time)
 
-        # create figure
-        bbox = [-60, -56.4, 12, 14.4]
-        domain_aspect = (bbox[3] - bbox[2]) / (bbox[1] - bbox[0])
-        fig = plt.figure(figsize=(11., domain_aspect * 10), dpi=96)
-        ax = plt.axes(projection=ccrs.PlateCarree())
-        ax.set_extent(bbox, crs=ccrs.PlateCarree())
-        fig.tight_layout()
+        sat_image_time += goes.time_resolution
+        while time < sat_image_time - date - goes.time_resolution / 2:
+            # create figure
+            bbox = [-60, -56.4, 12, 14.4]
+            domain_aspect = (bbox[3] - bbox[2]) / (bbox[1] - bbox[0])
+            plt.figure(figsize=(11., domain_aspect * 10), dpi=96)
+            ax = plt.axes(projection=ccrs.PlateCarree())
+            ax.set_extent(bbox, crs=ccrs.PlateCarree())
 
-        plt.pcolormesh(
-            goes_data.longitude,
-            goes_data.latitude,
-            goes_data.refl_0_65um_nom,
-            cmap='Greys_r')
+            plots.add_land_and_sea(ax)
 
-        # Plot the flight track between the previous and next satellite image
-        try:
-            idx_s = int(np.where(
-                dataset.Time == (time - date - goes.time_resolution).total_seconds())[0])
-        except TypeError:
-            # If we try to before the dataset we get a TypeError as np.where doesn't
-            # return anything
-            idx_s = 0
-        try:
-            idx_f = int(np.where(
-                dataset.Time == (time - date + goes.time_resolution).total_seconds())[0])
-        except TypeError:
-            # Same as above but for looking at the end of the dataset
-            idx_f = -1
+            # Plot the current satellite image
+            plt.pcolormesh(
+                goes_data.longitude,
+                goes_data.latitude,
+                goes_data.refl_0_65um_nom,
+                cmap='Greys_r')
 
-        plots.plot_flight_path(ax=ax, ds=dataset.isel(Time=slice(idx_s, idx_f)))
-        eurec4a.add_halo_circle(ax)
+            eurec4a.add_halo_circle(ax, color='teal', linewidth=3)
 
-        path_fig = output_path + '/' + 'flight{}_track_frame_{:03d}.png'.format(
-            dataset.attrs['flight_number'], n)
-        plt.savefig(path_fig, bbox_inches='tight')
-        print("Saved flight track to `{}`".format(str(path_fig)))
+            # Plot the flight track +- the satellite resolution
+            try:
+                idx_s = twinotter.index_from_time(
+                    time - goes.time_resolution, dataset.Time)
+            except TypeError:
+                # If we try to before the dataset we get a TypeError as np.where doesn't
+                # return anything
+                idx_s = 0
+            try:
+                idx_f = twinotter.index_from_time(
+                    time + goes.time_resolution, dataset.Time)
+            except TypeError:
+                # Same as above but for looking at the end of the dataset
+                idx_f = -1
 
-        time += goes.time_resolution
-        n += 1
+            # Plot the full flight path in a faded red
+            plots.plot_flight_path(ax=ax, ds=dataset, vmin=-10, vmax=0, cmap='Reds', alpha=0.3, linewidths=3, add_cmap=False)
+
+            # Plot the +-10 mins of flight path normally
+            plots.plot_flight_path(ax=ax, ds=dataset.isel(Time=slice(idx_s, idx_f)), cmap='cool', mark_end_points=False)
+
+            # Add a marker with the current position and rotation
+            ds_now = dataset.isel(Time=int((idx_s + idx_f)/2))
+            plots.add_flight_position(ax, ds_now)
+
+            path_fig = output_path + '/' + 'flight{}_track_frame_{:03d}.png'.format(
+                dataset.attrs['flight_number'], n)
+            plt.savefig(path_fig, bbox_inches='tight')
+            print("Saved flight track to `{}`".format(str(path_fig)))
+            plt.close()
+
+            time += substep
+            n += 1
 
     return
 

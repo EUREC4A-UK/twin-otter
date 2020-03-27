@@ -19,7 +19,7 @@ def _compute_radius(ortho, radius_degrees):
     return abs(y1)
 
 
-def add_halo_circle(ax, color='red', alpha=0.3):
+def add_halo_circle(ax, color='red', alpha=0.3, **kwargs):
     # Define the projection used to display the circle:
     proj = ccrs.Orthographic(central_longitude=lon, central_latitude=lat)
 
@@ -32,6 +32,7 @@ def add_halo_circle(ax, color='red', alpha=0.3):
         fill=False,
         color=color,
         alpha=alpha,
+        **kwargs
     ))
 
     return
