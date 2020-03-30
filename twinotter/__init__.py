@@ -117,7 +117,7 @@ def index_from_time(dt, time):
         int:
     """
     if type(dt) is str:
-        dt = datetime.timedelta(**parse.parse(time_of_day_format, timestr).named)
+        dt = datetime.timedelta(**parse.parse(time_of_day_format, dt).named)
 
     idx = int(np.where(time == dt.total_seconds())[0])
 
