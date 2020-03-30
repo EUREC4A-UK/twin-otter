@@ -29,7 +29,7 @@ def generate(flight_data_path, legs_file):
     # Produce the basic time-height plot
     fig, ax1 = plt.subplots()
     ax1.plot(ds.Time, ds.ROLL_OXTS, color='k', linestyle='--', alpha=0.5)
-    ax1.set_label('Roll Angle')
+    ax1.set_ylabel('Roll Angle')
     ax2 = ax1.twinx()
     ax2.plot(ds.Time, ds.ALT_OXTS / 1000, color='k')
     ax2.set_ylabel('Altitude (km)')
