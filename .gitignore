@@ -1,7 +1,7 @@
 .*.sw*
 .ipynb_checkpoints/
-obs/
-obs
+.idea/
+docs/build
 
 *.nc
 *.png
@@ -9,3 +9,4 @@ obs
 
 .pytest_cache/
 __pycache__/
+*.egg-info/
