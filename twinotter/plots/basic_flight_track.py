@@ -58,7 +58,7 @@ def generate(flight_data_path):
     path_fig = path_fig/'figures'/'flight{}_track_altitude.png'.format(ds.flight_number)
     path_fig.parent.mkdir(exist_ok=True, parents=True)
 
-    plt.savefig(path_fig, bbox_inches='tight')
+    plt.savefig(str(path_fig), bbox_inches='tight')
     print("Saved flight track to `{}`".format(str(path_fig)))
 
 
