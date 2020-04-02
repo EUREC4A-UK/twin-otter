@@ -2,11 +2,12 @@ import matplotlib.pyplot as plt
 from metpy.plots import SkewT
 import dateutil.parser
 
-from .. import flight_leg_index, load_flight
+from .. import load_flight
 
 
-def main(flight_data_path, filter_by={}, plot_type='skewt'):
-    ds = load_flight(flight_data_path, debug=True, filter_invalid=False)
+def main(flight_data_path, filter_by=dict(time_interval=(None, None)),
+         plot_type='skewt'):
+    ds = load_flight(flight_data_path, debug=True)
 
     if 'time_interval' in filter_by:
         ds_filtered = ds.sel(Time=slice(*filter_by['time_interval']))
@@ -20,6 +21,7 @@ def main(flight_data_path, filter_by={}, plot_type='skewt'):
             ds.flight_number, *filter_by['time_interval']
         )
     elif 'leg' in filter_by:
+        raise NotImplementedError("Filter by leg not currently implemented")
         ds = _filter_by_flight_leg(ds, flight_data_path, *filter_by['leg'])
         title = "leg: {} {}".format(*filter_by['leg'])
     else:
@@ -38,25 +40,6 @@ def main(flight_data_path, filter_by={}, plot_type='skewt'):
     plt.title(title)
     plt.show()
 
-<<<<<<< HEAD
-    return
-
-def _filter_by_flight_leg(ds, flight_data_path, leg_type, leg_number):
-    idx = flight_leg_index(flight_data_path, leg_type, leg_number)
-    return ds.isel(Time=idx)
-=======
-import twinotter
-
-
-def main():
-    flight_number = 330
-    leg_type = 'profile'
-    leg_number = 0
-
-    ds = twinotter.load_flight(flight_number)
-    p, T, Td, u, v = extract_data(ds, flight_number, leg_type, leg_number)
->>>>>>> master
-
 def _plot_linear_altitude(ds):
     fig, ax = plt.subplots()
 
@@ -66,7 +49,6 @@ def _plot_linear_altitude(ds):
     ds_.TDEW_BUCK.plot(y='ALT_OXTS', ax=ax, color='red')
 
 
-<<<<<<< HEAD
 def _extract_plot_data(ds):
     p = ds.PS_AIR
     T = ds.TAT_ND_R - 273.15
@@ -74,15 +56,6 @@ def _extract_plot_data(ds):
     u = ds.U_OXTS
     v = ds.V_OXTS
     alt = ds.HGT_RADR1
-=======
-def extract_data(ds, flight_number, leg_type, leg_number):
-    idx = twinotter.flight_leg_index(flight_number, leg_type, leg_number)
-    p = ds.PS_AIR[idx]
-    T = ds.TAT_ND_R[idx] - 273.15
-    Td = ds.TDEW_BUCK[idx] - 273.15
-    u = ds.U_OXTS[idx]
-    v = ds.V_OXTS[idx]
->>>>>>> master
 
     return alt, p, T, Td, u, v
 
