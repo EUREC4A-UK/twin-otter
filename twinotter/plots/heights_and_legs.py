@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
 
 import twinotter
 
@@ -48,10 +49,9 @@ def generate(flight_data_path, legs_file):
         ax2.plot(ds.Time[idx], ds.ALT_OXTS[idx] / 1000,
                  color=colors[leg_type], linewidth=2, alpha=0.75)
 
-    plt.savefig('flight{}/height-time-with-legs.png'.format(
-        ds.attrs['flight_number']))
-
-    return
+    p = Path(flight_data_path)/"figures"/'height-time-with-legs.png'
+    p.parent.mkdir(exist_ok=True)
+    plt.savefig(str(p))
 
 
 if __name__ == '__main__':
