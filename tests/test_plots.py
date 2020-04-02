@@ -5,6 +5,7 @@ import os
 import twinotter.plots.basic_flight_track
 import twinotter.plots.vertical_profile
 import twinotter.plots.heights_and_legs
+import twinotter.quicklook
 
 
 @patch('matplotlib.pyplot.savefig')
@@ -48,6 +49,23 @@ def test_heights_and_legs_plot(mock_savefig):
             legs_file=fh.name
         )
         mock_savefig.assert_called_once()
+    finally:
+        os.unlink(fh.name)
+
+@patch('matplotlib.pyplot.savefig')
+def test_quicklook_plot(mock_savefig):
+    # "leg"-files are created interactively, so we just add the content for one
+    # here and write that to a temporary file
+    fh = tempfile.NamedTemporaryFile(delete=False, mode="w")
+    try:
+        fh.write(LEGS_FILE_FLIGHT330)
+        fh.close()
+
+        twinotter.quicklook.generate(
+            flight_data_path="obs/flight330",
+            legs_file=fh.name
+        )
+        mock_savefig.assert_called_with()
     finally:
         os.unlink(fh.name)
 
