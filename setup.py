@@ -13,6 +13,7 @@ requirements = [
     'metpy',
     'cartopy',
     'parse',
+    'tqdm',
 ]
 
 setup_requirements = [ ]

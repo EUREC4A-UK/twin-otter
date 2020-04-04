@@ -127,14 +127,15 @@ def test_quicklook_plot(mock_savefig):
             flight_data_path="obs/flight330",
             legs_file=fh.name
         )
+
         n_legs = len(LEGS_FILE_FLIGHT330.split('Leg'))-1
         for n in range(n_legs):
-            fn_fig = "flight{}/Leg{}_quicklook.png".format(330, n)
+            fn_fig = "obs/flight{}/figures/Leg{}_quicklook.png".format(330, n)
             mock_savefig.assert_any_call(fn_fig)
 
         n_profiles = len(LEGS_FILE_FLIGHT330.split('Profile'))-1
         for n in range(n_profiles):
-            fn_fig = "flight{}/Profile{}_skewt.png".format(330, n)
+            fn_fig = "obs/flight{}/figures/Profile{}_skewt.png".format(330, n)
             mock_savefig.assert_any_call(fn_fig)
     finally:
         os.unlink(fh.name)

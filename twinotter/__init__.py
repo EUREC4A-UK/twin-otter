@@ -85,7 +85,7 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
 
 def open_masin_dataset(filename, meta, debug=False):
     _monkey_patch_xr_load()
-    ds = xr.open_dataset(filename, decode_cf=False)
+    ds = xr.open_dataset(filename, decode_cf=True)
     if debug:
         print("Loaded {}".format(filename))
 
@@ -94,9 +94,6 @@ def open_masin_dataset(filename, meta, debug=False):
     ds = ds.where(ds.LON_OXTS_FLAG == 0, drop=True)
     # drop nans too...
     ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
-
-    # XXX: quick fix until we get loading with CF-convention parsing working
-    ds = ds.where(ds.LON_OXTS != ds.LON_OXTS._FillValue, drop=True)
 
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
