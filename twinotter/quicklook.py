@@ -74,6 +74,7 @@ def generate(flight_data_path, legs_file):
         counters[label] += 1
 
         fig = plot_func(ds_section)
+        path_figures.mkdir(exist_ok=True)
         plt.savefig(str(path_figures/fn))
         plt.close()
 
