@@ -5,7 +5,7 @@ import pandas as pd
 import xarray as xr
 from tqdm import tqdm
 
-from . import load_flight
+from . import load_flight, derive
 from .plots import vertical_profile
 
 
@@ -80,7 +80,7 @@ def generate(flight_data_path, legs_file):
 
 
 def plot_leg(ds):
-    fig, axes = plt.subplots(nrows=5, ncols=1, sharex=True, figsize=[16, 15])
+    fig, axes = plt.subplots(nrows=7, ncols=1, sharex=True, figsize=[16, 15])
 
     # Temperature and Dewpoint
     ds.TAT_ND_R.plot(ax=axes[0], label=r'True')
@@ -111,6 +111,15 @@ def plot_leg(ds):
     # CPC Concentration
     ds.CPC_CONC.plot(ax=axes[4])
     add_labels(axes[4], 'CPC Concentration (m$^{-3}$)')
+
+    # LICOR data
+    ds.CO2_LICOR.plot(ax=axes[5], label=r"CO$_2$ LICOR")
+    ds.H2O_LICOR.plot(ax=axes[5], label=r"H$_2$O LICOR")
+    add_labels(axes[5], "Mole Fraction")
+    axes[5].legend()
+
+    axes[6].plot(ds.Time, derive.specific_humidity(ds))
+    add_labels(axes[6], "Specific Humidity")
 
     return fig
 
