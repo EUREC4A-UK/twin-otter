@@ -22,7 +22,7 @@ def main(flight_data_path, filter_by=dict(time_interval=(None, None)),
         )
     elif 'leg' in filter_by:
         raise NotImplementedError("Filter by leg not currently implemented")
-        ds = _filter_by_flight_leg(ds, flight_data_path, *filter_by['leg'])
+        # ds = _filter_by_flight_leg(ds, flight_data_path, *filter_by['leg'])
         title = "leg: {} {}".format(*filter_by['leg'])
     else:
         raise NotImplementedError
