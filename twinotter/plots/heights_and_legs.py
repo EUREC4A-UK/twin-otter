@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import xarray as xr
 
-import twinotter
+from .. import load_flight
 
 
 colors = {
@@ -27,7 +27,7 @@ def main():
 
 
 def generate(flight_data_path, legs_file):
-    ds = twinotter.load_flight(flight_data_path)
+    ds = load_flight(flight_data_path)
     df_legs = pd.read_csv(legs_file)
     ds_legs = xr.Dataset.from_dataframe(df_legs)
 
@@ -47,7 +47,7 @@ def generate(flight_data_path, legs_file):
         s_end = str(ds_leg.End.values)
         label = str(ds_leg.Label.values)
 
-        if not 'T' in s_start or not 'T' in s_end:
+        if 'T' not in s_start or 'T' not in s_end:
             date_start = ds.isel(Time=0).Time.dt.floor('D')
             date_end = ds.isel(Time=-1).Time.dt.floor('D')
 

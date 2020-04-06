@@ -16,8 +16,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import cartopy.crs as ccrs
 import pandas as pd
 
-from twinotter import load_flight
-from twinotter.plots import plot_flight_path
+from .. import load_flight
+from . import plot_flight_path
 
 
 def main():

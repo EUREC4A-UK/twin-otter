@@ -5,8 +5,8 @@ import pandas as pd
 import xarray as xr
 from tqdm import tqdm
 
-import twinotter
-from twinotter.plots import vertical_profile
+from . import load_flight
+from .plots import vertical_profile
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
 
 
 def generate(flight_data_path, legs_file):
-    ds = twinotter.load_flight(flight_data_path)
+    ds = load_flight(flight_data_path)
     df_legs = pd.read_csv(legs_file)
     ds_legs = xr.Dataset.from_dataframe(df_legs)
 

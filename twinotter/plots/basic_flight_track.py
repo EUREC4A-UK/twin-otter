@@ -11,8 +11,8 @@ import matplotlib.patches as mpatches
 from pathlib import Path
 from datetime import datetime
 
-from twinotter import load_flight
-from twinotter.plots import plot_flight_path
+from .. import load_flight
+from . import plot_flight_path
 
 
 # HALO circle attributes
