@@ -1,6 +1,9 @@
+from pathlib import Path
+
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import pandas as pd
-from pathlib import Path
+import xarray as xr
 
 import twinotter
 
@@ -25,7 +28,8 @@ def main():
 
 def generate(flight_data_path, legs_file):
     ds = twinotter.load_flight(flight_data_path)
-    legs = pd.read_csv(legs_file)
+    df_legs = pd.read_csv(legs_file)
+    ds_legs = xr.Dataset.from_dataframe(df_legs)
 
     # Produce the basic time-height plot
     fig, ax1 = plt.subplots()
@@ -36,18 +40,37 @@ def generate(flight_data_path, legs_file):
     ax2.set_ylabel('Altitude (km)')
 
     # For each leg overlay a coloured line onto the time-height plot
-    for n in range(legs.shape[0]):
-        print(n)
-        leg_type = legs['Label'][n]
-        start = legs['Start'][n]
-        end = legs['End'][n]
+    for i in tqdm(ds_legs.index):
+        ds_leg = ds_legs.sel(index=i)
 
-        idx_start = twinotter.index_from_time(start, ds.Time)
-        idx_end = twinotter.index_from_time(end, ds.Time)
-        idx = slice(idx_start, idx_end)
+        s_start = str(ds_leg.Start.values)
+        s_end = str(ds_leg.End.values)
+        label = str(ds_leg.Label.values)
 
-        ax2.plot(ds.Time[idx], ds.ALT_OXTS[idx] / 1000,
-                 color=colors[leg_type], linewidth=2, alpha=0.75)
+        if not 'T' in s_start or not 'T' in s_end:
+            date_start = ds.isel(Time=0).Time.dt.floor('D')
+            date_end = ds.isel(Time=-1).Time.dt.floor('D')
+
+            if date_start != date_end:
+                raise Exception("The leg start and end (`{}` and `{}`)"
+                                " don't contain a date and the flight"
+                                " spans more than one day. Not sure"
+                                " which day the given leg is on")
+
+            start_date_str = str(date_start.values).split('T')[0]
+            end_date_str = str(date_end.values).split('T')[0]
+
+            start_datetime_str = "{}T{}".format(start_date_str, s_start)
+            end_datetime_str = "{}T{}".format(end_date_str, s_end)
+
+            ds_section = ds.sel(
+                Time=slice(start_datetime_str, end_datetime_str)
+            )
+        else:
+            ds_section = ds.sel(Time=slice(s_start, s_end))
+
+        ax2.plot(ds_section.Time, ds_section.ALT_OXTS / 1000,
+                 color=colors[label], linewidth=2, alpha=0.75)
 
     p = Path(flight_data_path)/"figures"/'height-time-with-legs.png'
     p.parent.mkdir(exist_ok=True)
