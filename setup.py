@@ -19,7 +19,9 @@ requirements = [
 
 setup_requirements = [ ]
 
-test_requirements = [ ]
+test_requirements = [
+    "pytest"
+]
 
 setuptools.setup(
     author="eurec4a",
@@ -44,5 +46,5 @@ setuptools.setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='',
-    version='0.1',
+    version='0.2',
 )
