@@ -2,8 +2,10 @@ from pathlib import Path
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mplticker
 import pandas as pd
 import xarray as xr
+import numpy as np
 
 from .. import load_flight
 
@@ -72,13 +74,21 @@ def generate(flight_data_path, legs_file):
         ax2.plot(ds_section.Time, ds_section.ALT_OXTS / 1000,
                  color=colors[label], linewidth=2, alpha=0.75)
 
+    if hasattr(ax2, 'secondary_yaxis'):
+        # `ax.secondary_yaxis` was added in matplotlib v3.1
+        ax2_fl = ax2.secondary_yaxis(
+            location=1.2,
+            functions=(lambda y: (y*1000*3.281)/100, lambda x: x)
+        )
+        ax2_fl.set_ylabel(r"Flight level [100ft]")
+
     for label in ax1.get_xmajorticklabels():
         label.set_rotation(30)
         label.set_horizontalalignment("right")
 
     p = Path(flight_data_path)/"figures"/'height-time-with-legs.png'
     p.parent.mkdir(exist_ok=True)
-    plt.savefig(str(p))
+    plt.savefig(str(p), bbox_inches="tight")
 
 
 if __name__ == '__main__':
