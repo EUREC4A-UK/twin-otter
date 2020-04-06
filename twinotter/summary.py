@@ -11,7 +11,7 @@ import parse
 import pandas as pd
 import xarray as xr
 
-import twinotter
+from . import generate_file_path, MASIN_CORE_FORMAT
 
 time_format = "{hours:02d}:{minutes:02d}:{seconds:02d} UTC"
 
@@ -34,7 +34,7 @@ def main():
 def generate(flight_data_path, flight_summary_path):
     # Get a list of netCDF files in the obs/ folder which match the expected
     # file pattern
-    fn_pattern = twinotter.MASIN_CORE_FORMAT.format(
+    fn_pattern = MASIN_CORE_FORMAT.format(
         date="*", revision="*", flight_num="*", freq="*"
     )
 
@@ -46,7 +46,7 @@ def generate(flight_data_path, flight_summary_path):
 
         for index, entry in flight_summary.iterrows():
             # Get the filename of existing entries in flight_information.csv
-            file_path = twinotter.generate_file_path(
+            file_path = generate_file_path(
                 flight_number=entry['Flight Number'],
                 date=entry['Date'],
                 frequency=entry['Frequency'],
@@ -73,7 +73,7 @@ def generate(flight_data_path, flight_summary_path):
     # Add these new files to the .csv
     for path in file_paths:
         # Get date, flight number, revision and frequency from the filename
-        flight_info = parse.parse(twinotter.MASIN_CORE_FORMAT, path.name)
+        flight_info = parse.parse(MASIN_CORE_FORMAT, path.name)
 
         # Format the date so it is more readable in the csv
         date = flight_info['date']
