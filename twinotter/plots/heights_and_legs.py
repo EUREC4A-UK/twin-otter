@@ -72,6 +72,10 @@ def generate(flight_data_path, legs_file):
         ax2.plot(ds_section.Time, ds_section.ALT_OXTS / 1000,
                  color=colors[label], linewidth=2, alpha=0.75)
 
+    for label in ax1.get_xmajorticklabels():
+        label.set_rotation(30)
+        label.set_horizontalalignment("right")
+
     p = Path(flight_data_path)/"figures"/'height-time-with-legs.png'
     p.parent.mkdir(exist_ok=True)
     plt.savefig(str(p))
