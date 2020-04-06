@@ -14,6 +14,7 @@ requirements = [
     'cartopy',
     'parse',
     'tqdm',
+    'cftime',
 ]
 
 setup_requirements = [ ]
