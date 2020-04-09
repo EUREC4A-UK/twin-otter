@@ -6,10 +6,12 @@ import os
 import requests
 import pytest
 
+import twinotter
+
 TESTDATA_URL = "http://gws-access.ceda.ac.uk/public/eurec4auk/testdata/twinotter.testdata.tar.gz"
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def testdata(scope="session"):
     fhtar = tempfile.NamedTemporaryFile(
         delete=False, suffix='.tar.gz'
@@ -30,3 +32,11 @@ def testdata(scope="session"):
     )
 
     os.unlink(fhtar.name)
+
+
+@pytest.fixture
+def testdata_empty():
+    tempdir = tempfile.TemporaryDirectory()
+    p_root = Path(tempdir.name)
+
+    return dict(flight_data_path=str(p_root))
