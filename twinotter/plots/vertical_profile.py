@@ -1,33 +1,63 @@
 import matplotlib.pyplot as plt
 from metpy.plots import SkewT
+import dateutil.parser
 
-import twinotter
+from .. import load_flight
 
 
-def main():
-    flight_number = 330
-    leg_type = 'profile'
-    leg_number = 0
+def main(flight_data_path, filter_by=dict(time_interval=(None, None)),
+         plot_type='skewt'):
+    ds = load_flight(flight_data_path, debug=True)
 
-    ds = twinotter.load_flight(flight_number)
-    p, T, Td, u, v = extract_data(ds, flight_number, leg_type, leg_number)
+    if 'time_interval' in filter_by:
+        ds_filtered = ds.sel(Time=slice(*filter_by['time_interval']))
+        if ds_filtered.Time.count() == 0:
+            raise Exception("Nothing found in selected time range, data"
+                            " time range: [{} : {}]".format(
+                                ds.Time.min().values, ds.Time.max().values))
+        else:
+            ds = ds_filtered
+        title = "flight {}, extract: {} to {}".format(
+            ds.flight_number, *filter_by['time_interval']
+        )
+    elif 'leg' in filter_by:
+        raise NotImplementedError("Filter by leg not currently implemented")
+        # ds = _filter_by_flight_leg(ds, flight_data_path, *filter_by['leg'])
+        title = "leg: {} {}".format(*filter_by['leg'])
+    else:
+        raise NotImplementedError
 
-    skewt(p, T, Td, u, v)
+    alt, p, T, Td, u, v = _extract_plot_data(ds)
 
+    if plot_type == 'skewt':
+        skewt(p, T, Td, u, v)
+    elif plot_type == 'linear_altitude':
+        _plot_linear_altitude(ds)
+    else:
+        raise NotImplementedError(plot_type)
+
+
+    plt.title(title)
     plt.show()
 
-    return
+def _plot_linear_altitude(ds):
+    fig, ax = plt.subplots()
+
+    ds_ = ds.swap_dims(dict(Time='ALT_OXTS'))
+
+    ds_.TAT_ND_R.plot(y='ALT_OXTS', ax=ax, color='green')
+    ds_.TDEW_BUCK.plot(y='ALT_OXTS', ax=ax, color='red')
 
 
-def extract_data(ds, flight_number, leg_type, leg_number):
-    idx = twinotter.flight_leg_index(flight_number, leg_type, leg_number)
-    p = ds.PS_AIR[idx]
-    T = ds.TAT_ND_R[idx] - 273.15
-    Td = ds.TDEW_BUCK[idx] - 273.15
-    u = ds.U_OXTS[idx]
-    v = ds.V_OXTS[idx]
+def _extract_plot_data(ds):
+    p = ds.PS_AIR
+    T = ds.TAT_ND_R - 273.15
+    Td = ds.TDEW_BUCK - 273.15
+    u = ds.U_OXTS
+    v = ds.V_OXTS
+    alt = ds.HGT_RADR1
 
-    return p, T, Td, u, v
+    return alt, p, T, Td, u, v
 
 
 def skewt(p, T, Td, u, v):
@@ -79,4 +109,30 @@ def skewt(p, T, Td, u, v):
 
 
 if __name__ == '__main__':
-    main()
+    def _flight_leg(s):
+        leg_type, leg_number = s.split(':')
+        return leg_type, int(leg_number)
+
+    import argparse
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('flight_data_path')
+    argparser.add_argument('--time-interval',
+                           help='e.g. 2020-01-17T14:00Z 2020-01-17T15:00Z',
+                           nargs=2, type=dateutil.parser.parse)
+    argparser.add_argument('--leg', help='e.g. profile:0', type=_flight_leg)
+    argparser.add_argument('--type', choices=['skewt', 'linear_altitude'],
+                           default='skewt')
+
+    args = argparser.parse_args()
+
+    kws = dict(plot_type=args.type)
+
+    if args.time_interval is not None:
+        kws['filter_by'] = dict(time_interval=args.time_interval)
+    elif args.leg:
+        kws['filter_by'] = dict(leg=args.leg)
+    else:
+        raise NotImplementedError
+
+    main(args.flight_data_path, **kws)
+

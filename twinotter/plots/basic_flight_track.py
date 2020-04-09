@@ -7,25 +7,24 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from datetime import datetime
 
-from twinotter import load_flight
-from twinotter import plots
-from twinotter.external import eurec4a
+from .. import load_flight
+from .. import plots
+from ..external import eurec4a
 
 
 def main():
     import argparse
     argparser = argparse.ArgumentParser()
     argparser.add_argument('flight_data_path', nargs="+")
+    argparser.add_argument("--show-gui", default=False, action="store_true")
 
     args = argparser.parse_args()
 
     for flight_data_path in args.flight_data_path:
-        generate(flight_data_path=flight_data_path)
-
-    return
+        generate(flight_data_path=flight_data_path, show_gui=args.show_gui)
 
 
-def generate(flight_data_path):
+def generate(flight_data_path, show_gui=False):
     flight_data_path = Path(flight_data_path)
 
     # create figure
@@ -40,8 +39,9 @@ def generate(flight_data_path):
     ds = load_flight(flight_data_path, debug=True)
     plots.plot_flight_path(ax=ax, ds=ds)
 
+    fig = ax.figure
     caption = "created {} from {}".format(datetime.now(), ds.source_file)
-    ax.text(0.0, 0.0, caption, transform=plt.gcf().transFigure)
+    ax.text(0.0, 0.0, caption, transform=fig.transFigure)
 
     if flight_data_path.is_file():
         path_fig = flight_data_path.parent
@@ -50,10 +50,11 @@ def generate(flight_data_path):
     path_fig = path_fig/'figures'/'flight{}_track_altitude.png'.format(ds.flight_number)
     path_fig.parent.mkdir(exist_ok=True, parents=True)
 
-    plt.savefig(path_fig, bbox_inches='tight')
-    print("Saved flight track to `{}`".format(str(path_fig)))
-
-    return
+    if show_gui:
+        plt.show()
+    else:
+        plt.savefig(str(path_fig), bbox_inches='tight')
+        print("Saved flight track to `{}`".format(str(path_fig)))
 
 
 def add_features(ax):

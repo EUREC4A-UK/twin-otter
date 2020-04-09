@@ -13,13 +13,17 @@ requirements = [
     'metpy',
     'cartopy',
     'parse',
+    'tqdm',
+    'cftime',
     'worldview_dl',
     'docopt',
 ]
 
-setup_requirements = []
+setup_requirements = [ ]
 
-test_requirements = []
+test_requirements = [
+    "pytest"
+]
 
 setuptools.setup(
     author="eurec4a",
@@ -39,10 +43,12 @@ setuptools.setup(
     include_package_data=True,
     keywords='',
     name='twinotter',
-    packages=setuptools.find_packages(include=['twinotter']),
+    packages=setuptools.find_packages(
+        include=['twinotter', 'twinotter.plots', 'twinotter.data']
+    ),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='',
-    version='0.1',
+    version='0.2.2',
 )

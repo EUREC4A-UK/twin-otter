@@ -1,5 +1,7 @@
 # Tools for working with Twin-Otter data
 
+![twinotter](https://github.com/EUREC4A-UK/twin-otter/workflows/twinotter/badge.svg)
+
 ## Useful Scripts
 
     $> python -m twinotter.generate_summary <data_directory>
@@ -40,3 +42,10 @@ or manually install the cartopy dependencies (Following [this stack overflow ans
 
 
 
+## Testing
+
+To run tests (which reside in `tests/`) use `pytest`:
+
+    $> pytest
+        
+Tests are automatically run on all commits pushed to github

@@ -1,0 +1,3 @@
+# add current directory to requirements so that requirements in setup.py get
+# included, https://stackoverflow.com/a/16624700/271776
+.

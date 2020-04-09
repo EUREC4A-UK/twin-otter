@@ -15,6 +15,29 @@ MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<fligh
 time_of_day_format = "{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
+def _monkey_patch_xr_load():
+    # by the CF-convections units should always be a string
+    # http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#units
+    # fix here as it breaks cf-convention loading in xarray otherwise
+
+    def _fix_var(var):
+        if var.attrs['units'] == 1:
+            var.attrs['units'] = "1"
+
+    _decode_variable_old = xr.conventions.decode_cf_variable
+    def _decode_cf_variable(name, var, *args, **kwargs):
+        _fix_var(var)
+        return _decode_variable_old(name=name, var=var, *args, **kwargs)
+    xr.conventions.decode_cf_variable = _decode_cf_variable
+
+    _decode_variables_old = xr.conventions.decode_cf_variables
+    def _decode_cf_variables(variables, *args, **kwargs):
+        for var in variables:
+            _fix_var(variables[var])
+        return _decode_variables_old(variables, *args, **kwargs)
+    xr.conventions.decode_cf_variables = _decode_cf_variables
+
+
 def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=False):
     # If a path to a netCDF file is specified just load it
     if Path(flight_data_path).is_file():
@@ -64,7 +87,8 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
 
 
 def open_masin_dataset(filename, meta, debug=False):
-    ds = xr.open_dataset(filename, decode_cf=False)
+    _monkey_patch_xr_load()
+    ds = xr.open_dataset(filename, decode_cf=True)
     if debug:
         print("Loaded {}".format(filename))
 
@@ -73,9 +97,6 @@ def open_masin_dataset(filename, meta, debug=False):
     ds = ds.where(ds.LON_OXTS_FLAG == 0, drop=True)
     # drop nans too...
     ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
-
-    # XXX: quick fix until we get loading with CF-convention parsing working
-    ds = ds.where(ds.LON_OXTS != ds.LON_OXTS._FillValue, drop=True)
 
     # plot as function of time
     ds = ds.swap_dims(dict(data_point='Time'))
@@ -88,7 +109,6 @@ def open_masin_dataset(filename, meta, debug=False):
 
 def flight_leg_times(flight_legs, leg_name, leg_number=0):
     """Get a slice representing a single section of the flight
-
     Args:
         flight_legs (pandas.DataFrame):
         leg_name (str):
@@ -107,7 +127,6 @@ def flight_leg_times(flight_legs, leg_name, leg_number=0):
 
 def index_from_time(dt, time):
     """
-
     Args:
         dt (str | datetime.timedelta): A string representing time of day formatted as
             "HH:MM:SS"
