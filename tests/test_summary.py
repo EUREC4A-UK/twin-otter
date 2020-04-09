@@ -1,11 +1,12 @@
 import pytest
 import pathlib
+import tempfile
 
 import twinotter.summary
 
 
 def test_summary(testdata):
-    flight_summary_path = pathlib.Path(testdata["path"])/"test.csv"
+    flight_summary_path = pathlib.Path(tempfile.NamedTemporaryFile(suffix=".csv").name)
 
     twinotter.summary.generate(
         flight_data_path=testdata["flight_data_path"],
