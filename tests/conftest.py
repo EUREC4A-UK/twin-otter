@@ -35,7 +35,7 @@ def testdata(scope="session"):
 
 
 @pytest.fixture
-def testdata_empty():
+def testdata_empty(scope="session"):
     tempdir = tempfile.TemporaryDirectory()
     p_root = Path(tempdir.name)
 
