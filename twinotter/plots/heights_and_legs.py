@@ -21,14 +21,13 @@ def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument('flight_data_path')
     argparser.add_argument('legs_file')
+    argparser.add_argument('--show-gui', default=False, action="store_true")
     args = argparser.parse_args()
 
-    generate(args.flight_data_path, args.legs_file)
-
-    return
+    generate(args.flight_data_path, args.legs_file, show_gui=args.show_gui)
 
 
-def generate(flight_data_path, legs_file):
+def generate(flight_data_path, legs_file, show_gui=False):
     ds = load_flight(flight_data_path)
     df_legs = pd.read_csv(legs_file)
     ds_legs = xr.Dataset.from_dataframe(df_legs)
@@ -86,9 +85,12 @@ def generate(flight_data_path, legs_file):
         label.set_rotation(30)
         label.set_horizontalalignment("right")
 
-    p = Path(flight_data_path)/"figures"/'height-time-with-legs.png'
-    p.parent.mkdir(exist_ok=True)
-    plt.savefig(str(p), bbox_inches="tight")
+    if show_gui:
+        plt.show()
+    else:
+        p = Path(flight_data_path)/"figures"/'height-time-with-legs.png'
+        p.parent.mkdir(exist_ok=True)
+        plt.savefig(str(p), bbox_inches="tight")
 
 
 if __name__ == '__main__':
