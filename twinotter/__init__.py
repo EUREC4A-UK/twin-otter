@@ -1,9 +1,7 @@
 from pathlib import Path
 import re
-import datetime
 
-import parse
-import numpy as np
+import pandas as pd
 import xarray as xr
 
 
@@ -104,40 +102,38 @@ def open_masin_dataset(filename, meta, debug=False):
     return ds
 
 
-def extract_time(ds, start, end):
-    """Extract a subset of the dataset over a time range
+def load_legs(filename):
+    """Read a legs file created with twinotter.plots.interactive_flight_track
 
     Args:
-        ds (xarray.Dataset):
-        start (str):
-        end (str):
+        filename (str):
 
     Returns:
-        xarray.Dataset: The
+        pandas.DataFrame:
     """
-    if 'T' not in start or 'T' not in end:
-        date_start = ds.isel(Time=0).Time.dt.floor('D')
-        date_end = ds.isel(Time=-1).Time.dt.floor('D')
 
-        if date_start != date_end:
-            raise Exception("The leg start and end (`{}` and `{}`)"
-                            " don't contain a date and the flight"
-                            " spans more than one day. Not sure"
-                            " which day the given leg is on")
+    # Load the legs file and convert the times to timedeltas
+    # (Saved as the string representation of datetime.timedelta)
+    legs = pd.read_csv(
+        filename, parse_dates=["Start", "End"], date_parser=pd.to_timedelta)
 
-        start_date_str = str(date_start.values).split('T')[0]
-        end_date_str = str(date_end.values).split('T')[0]
+    return legs
 
-        start_datetime_str = "{}T{}".format(start_date_str, start)
-        end_datetime_str = "{}T{}".format(end_date_str, end)
 
-        ds_section = ds.sel(
-            Time=slice(start_datetime_str, end_datetime_str)
-        )
-    else:
-        ds_section = ds.sel(Time=slice(start, end))
+def leg_times_as_datetime(legs, start):
+    """Convert the times of the legs from timedelta to datetime
 
-    return ds_section
+    By default the legs labelled in twinotter.plots.interactive_flight_track are
+    timedeltas taken from when the files had time in units of seconds since the start of
+    the day. So we just need to add back on the start time (i.e. a datetime.datetime)
+    of the start of the day.
+
+    Args:
+        legs (pandas.DataFrame):
+        start (datetime.datetime:
+    """
+    legs.Start += start
+    legs.End += start
 
 
 def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data_path=None):

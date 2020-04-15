@@ -2,10 +2,8 @@ from pathlib import Path
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-import pandas as pd
-import xarray as xr
 
-from .. import load_flight, extract_time
+from .. import load_flight, load_legs, leg_times_as_datetime
 
 
 colors = {
@@ -27,8 +25,8 @@ def main():
 
 def generate(flight_data_path, legs_file, show_gui=False):
     ds = load_flight(flight_data_path)
-    df_legs = pd.read_csv(legs_file)
-    ds_legs = xr.Dataset.from_dataframe(df_legs)
+    legs = load_legs(legs_file)
+    leg_times_as_datetime(legs, ds.Time[0].dt.floor('D').data)
 
     # Produce the basic time-height plot
     fig, ax1 = plt.subplots()
@@ -39,14 +37,10 @@ def generate(flight_data_path, legs_file, show_gui=False):
     ax2.set_ylabel('Altitude (km)')
 
     # For each leg overlay a coloured line onto the time-height plot
-    for i in tqdm(ds_legs.index):
-        ds_leg = ds_legs.sel(index=i)
+    for (idx, leg) in tqdm(legs.iterrows(), total=legs.shape[0]):
+        label = leg.Label
 
-        s_start = str(ds_leg.Start.values)
-        s_end = str(ds_leg.End.values)
-        label = str(ds_leg.Label.values)
-
-        ds_section = extract_time(ds, s_start, s_end)
+        ds_section = ds.sel(Time=slice(leg.Start, leg.End))
 
         ax2.plot(ds_section.Time, ds_section.ALT_OXTS / 1000,
                  color=colors[label], linewidth=2, alpha=0.75)
