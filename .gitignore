@@ -2,6 +2,7 @@
 .ipynb_checkpoints/
 .idea/
 docs/build
+tests/testdata/
 
 *.nc
 *.png
