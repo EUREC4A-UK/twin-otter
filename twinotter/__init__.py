@@ -104,39 +104,40 @@ def open_masin_dataset(filename, meta, debug=False):
     return ds
 
 
-def flight_leg_times(flight_legs, leg_name, leg_number=0):
-    """Get a slice representing a single section of the flight
+def extract_time(ds, start, end):
+    """Extract a subset of the dataset over a time range
+
     Args:
-        flight_legs (pandas.DataFrame):
-        leg_name (str):
-        leg_number (int): For multiple of the same type of leg within a flight,
-            select which leg you want. Default is zero
+        ds (xarray.Dataset):
+        start (str):
+        end (str):
 
     Returns:
-        slice:
+        xarray.Dataset: The
     """
-    idx = flight_legs[flight_legs['Label'] == leg_name].index[leg_number]
-    start = flight_legs['Start'][idx]
-    end = flight_legs['End'][idx]
+    if 'T' not in start or 'T' not in end:
+        date_start = ds.isel(Time=0).Time.dt.floor('D')
+        date_end = ds.isel(Time=-1).Time.dt.floor('D')
 
-    return start, end
+        if date_start != date_end:
+            raise Exception("The leg start and end (`{}` and `{}`)"
+                            " don't contain a date and the flight"
+                            " spans more than one day. Not sure"
+                            " which day the given leg is on")
 
+        start_date_str = str(date_start.values).split('T')[0]
+        end_date_str = str(date_end.values).split('T')[0]
 
-def index_from_time(timestr, time):
-    """
-    Args:
-        timestr (str): A string representing time of day formatted as "HH:MM:SS"
-        time (array):
+        start_datetime_str = "{}T{}".format(start_date_str, start)
+        end_datetime_str = "{}T{}".format(end_date_str, end)
 
-    Returns:
-        int:
-    """
-    HH, MM, SS = parse.parse("{:d}:{:d}:{:d}", timestr)
-    dt = datetime.timedelta(hours=HH, minutes=MM, seconds=SS)
+        ds_section = ds.sel(
+            Time=slice(start_datetime_str, end_datetime_str)
+        )
+    else:
+        ds_section = ds.sel(Time=slice(start, end))
 
-    idx = int(np.where(time == dt.total_seconds())[0])
-
-    return idx
+    return ds_section
 
 
 def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data_path=None):

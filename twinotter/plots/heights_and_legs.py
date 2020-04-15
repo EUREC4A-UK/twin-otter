@@ -2,12 +2,10 @@ from pathlib import Path
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mplticker
 import pandas as pd
 import xarray as xr
-import numpy as np
 
-from .. import load_flight
+from .. import load_flight, extract_time
 
 
 colors = {
@@ -48,27 +46,7 @@ def generate(flight_data_path, legs_file, show_gui=False):
         s_end = str(ds_leg.End.values)
         label = str(ds_leg.Label.values)
 
-        if 'T' not in s_start or 'T' not in s_end:
-            date_start = ds.isel(Time=0).Time.dt.floor('D')
-            date_end = ds.isel(Time=-1).Time.dt.floor('D')
-
-            if date_start != date_end:
-                raise Exception("The leg start and end (`{}` and `{}`)"
-                                " don't contain a date and the flight"
-                                " spans more than one day. Not sure"
-                                " which day the given leg is on")
-
-            start_date_str = str(date_start.values).split('T')[0]
-            end_date_str = str(date_end.values).split('T')[0]
-
-            start_datetime_str = "{}T{}".format(start_date_str, s_start)
-            end_datetime_str = "{}T{}".format(end_date_str, s_end)
-
-            ds_section = ds.sel(
-                Time=slice(start_datetime_str, end_datetime_str)
-            )
-        else:
-            ds_section = ds.sel(Time=slice(s_start, s_end))
+        ds_section = extract_time(ds, s_start, s_end)
 
         ax2.plot(ds_section.Time, ds_section.ALT_OXTS / 1000,
                  color=colors[label], linewidth=2, alpha=0.75)
