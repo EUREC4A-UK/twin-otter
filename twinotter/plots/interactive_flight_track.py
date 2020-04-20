@@ -35,6 +35,11 @@ def main():
 def start_gui(flight_data_path):
     ds = load_flight(flight_data_path)
 
+    # Use pandas datetime functionality as xarray makes this difficult
+    time = pd.to_datetime(ds.Time.data)
+    # Flight leg times will be recorded as time since the start of the flight day
+    flight_day_start = pd.to_datetime(ds.Time[0].dt.floor("D").data)
+
     root = tkinter.Tk()
     root.wm_title("Interactive Flight Track: Flight {}".format(
         ds.attrs['flight_number']))
@@ -81,8 +86,6 @@ def start_gui(flight_data_path):
             initialfile="flight{}-legs.csv".format(ds.attrs['flight_number']))
         leg_info.to_csv(filename)
 
-        return
-
     save_button = tkinter.Button(master=button_area, text="Save", command=_save)
     save_button.grid(row=0, column=0)
 
@@ -90,8 +93,6 @@ def start_gui(flight_data_path):
         root.quit()  # stops mainloop
         root.destroy()  # this is necessary on Windows to prevent
         # Fatal Python Error: PyEval_RestoreThread: NULL tstate
-
-        return
 
     quit_button = tkinter.Button(master=button_area, text="Quit", command=_quit)
     quit_button.grid(row=0, column=1)
@@ -106,14 +107,17 @@ def start_gui(flight_data_path):
     def highlight_leg(start, end):
         nonlocal leg_info
 
+        start = _convert_wacky_date_format(start)
+        end = _convert_wacky_date_format(end)
+
         label = textbox.get()
-        idx_start = find_nearest_point(start, ds.Time)
-        idx_end = find_nearest_point(end, ds.Time)
+        idx_start = find_nearest_point(start, time)
+        idx_end = find_nearest_point(end, time)
 
         leg_info = leg_info.append({
             'Label': label,
-            'Start': format_timedelta(ds, idx_start),
-            'End': format_timedelta(ds, idx_end)
+            'Start': str(time[idx_start] - flight_day_start),
+            'End': str(time[idx_end] - flight_day_start),
         }, ignore_index=True)
 
         return
@@ -123,15 +127,19 @@ def start_gui(flight_data_path):
 
     tkinter.mainloop()
 
-    return
-
 
 def find_nearest_point(value, points):
     return int(np.argmin(np.abs(value-points)))
 
 
-def format_timedelta(ds, idx):
-    return str(datetime.timedelta(seconds=float(ds.Time[idx])))
+t0 = datetime.datetime(1, 1, 1)
+def _convert_wacky_date_format(wacky_time):
+    # The twinotter MASIN data is loaded in with a datetime coordinate but when this is
+    # used on the interactive plot the value returned from the click is in days from the
+    # "zeroth" datetime. Use this zeroth datetime (t0) to get the date again.
+    # The zeroth datetime is also for day=0 but this can't be handled by datetime so
+    # we also have to subtract 1 day from the result
+    return t0 + datetime.timedelta(days=wacky_time) - datetime.timedelta(days=1)
 
 
 if __name__ == '__main__':

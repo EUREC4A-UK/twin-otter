@@ -31,16 +31,15 @@ def main():
     import argparse
     argparser = argparse.ArgumentParser()
     argparser.add_argument('flight_data_path', nargs="+")
+    argparser.add_argument("--show-gui", default=False, action="store_true")
 
     args = argparser.parse_args()
 
     for flight_data_path in args.flight_data_path:
-        generate(flight_data_path=flight_data_path)
-
-    return
+        generate(flight_data_path=flight_data_path, show_gui=args.show_gui)
 
 
-def generate(flight_data_path):
+def generate(flight_data_path, show_gui=False):
     flight_data_path = Path(flight_data_path)
 
     ax = draw_features()
@@ -58,8 +57,11 @@ def generate(flight_data_path):
     path_fig = path_fig/'figures'/'flight{}_track_altitude.png'.format(ds.flight_number)
     path_fig.parent.mkdir(exist_ok=True, parents=True)
 
-    plt.savefig(str(path_fig), bbox_inches='tight')
-    print("Saved flight track to `{}`".format(str(path_fig)))
+    if show_gui:
+        plt.show()
+    else:
+        plt.savefig(str(path_fig), bbox_inches='tight')
+        print("Saved flight track to `{}`".format(str(path_fig)))
 
 
 def draw_features():
