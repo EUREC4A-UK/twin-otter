@@ -94,31 +94,19 @@ def make_frame(goes_data):
 
 def overlay_flight_path_segment(ax, flight_data, time):
     # Plot the flight track +- the satellite resolution
-    try:
-        idx_s = twinotter.index_from_time(
-            time - goes.time_resolution, flight_data.Time)
-    except TypeError:
-        # If we try to before the dataset we get a TypeError as np.where doesn't
-        # return anything
-        idx_s = 0
-    try:
-        idx_f = twinotter.index_from_time(
-            time + goes.time_resolution, flight_data.Time)
-    except TypeError:
-        # Same as above but for looking at the end of the dataset
-        idx_f = -1
+    start = time - goes.time_resolution
+    end = time + goes.time_resolution
 
     # Plot the full flight path in a faded red
     plots.plot_flight_path(ax=ax, ds=flight_data, vmin=-10, vmax=0, cmap='Reds', alpha=0.3,
                            linewidths=3, add_cmap=False)
 
     # Plot the +-10 mins of flight path normally
-    plots.plot_flight_path(ax=ax, ds=flight_data.isel(Time=slice(idx_s, idx_f)),
+    plots.plot_flight_path(ax=ax, ds=flight_data.sel(Time=slice(start, end)),
                            cmap='cool', mark_end_points=False)
 
     # Add a marker with the current position and rotation
-    ds_now = flight_data.isel(Time=int((idx_s + idx_f) / 2))
-    plots.add_flight_position(ax, ds_now)
+    plots.add_flight_position(ax, flight_data.sel(Time=time))
 
 
 if __name__ == '__main__':
