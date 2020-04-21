@@ -8,8 +8,15 @@ import pytest
 
 TESTDATA_URL = "http://gws-access.ceda.ac.uk/public/eurec4auk/testdata/twinotter.testdata.tar.gz"
 
+GOES_TESTDATA_URL = (
+    "https://observations.ipsl.fr/aeris/eurec4a-data/"
+    "SATELLITES/GOES-E/2km_10min/2020/2020_01_24/"
+    "clavrx_OR_ABI-L1b-RadF-M6C01_G16_s20200241400165_BARBADOS-2KM-FD.level2.nc"
+)
+
 # A testdata folder in this directory
 testdata_dir = Path(__file__).parent / "testdata"
+testdata_goes_dir = testdata_dir / "goes"
 
 
 def download_testdata():
@@ -26,21 +33,35 @@ def download_testdata():
     return
 
 
+def download_goes_testdata():
+    with requests.get(GOES_TESTDATA_URL, stream=True) as r:
+        with open(testdata_goes_dir / GOES_TESTDATA_URL.split("/")[-1], 'wb') as f:
+            shutil.copyfileobj(r.raw, f)
+    pass
+
+
 @pytest.fixture
 def testdata(scope="session"):
     # Download testdata if it is not there yet
     if not testdata_dir.exists():
+        testdata_dir.mkdir()
         download_testdata()
+
+    if not testdata_goes_dir.exists():
+        testdata_goes_dir.mkdir()
+        download_goes_testdata()
 
     # Copy data to a temporary directory
     tempdir = tempfile.TemporaryDirectory()
     p_root = Path(tempdir.name)
     shutil.copytree(testdata_dir / "obs", p_root / "obs")
+    shutil.copytree(testdata_dir / "goes", p_root / "goes")
 
     yield dict(
         path=str(p_root/"obs"),
         flight_data_path=str(p_root/"obs"/"flight330"),
         flight_legs_data_path=str(p_root/"obs"/"flight330"/"flight330-legs.csv"),
+        goes_path=str(p_root/"goes"),
     )
 
 
