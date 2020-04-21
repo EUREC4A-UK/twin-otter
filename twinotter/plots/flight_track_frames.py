@@ -55,48 +55,9 @@ def generate(flight_data_path, goes_path=".", output_path="."):
 
         sat_image_time += goes.time_resolution
         while time < sat_image_time - date - goes.time_resolution / 2:
-            # create figure
-            bbox = [-60, -56.4, 12, 14.4]
-            domain_aspect = (bbox[3] - bbox[2]) / (bbox[1] - bbox[0])
-            plt.figure(figsize=(11., domain_aspect * 10), dpi=96)
-            ax = plt.axes(projection=ccrs.PlateCarree())
-            ax.set_extent(bbox, crs=ccrs.PlateCarree())
+            fig, ax = make_frame(goes_data)
 
-            plots.add_land_and_sea(ax)
-
-            # Plot the current satellite image
-            plt.pcolormesh(
-                goes_data.longitude,
-                goes_data.latitude,
-                goes_data.refl_0_65um_nom,
-                cmap='Greys_r')
-
-            eurec4a.add_halo_circle(ax, color='teal', linewidth=3)
-
-            # Plot the flight track +- the satellite resolution
-            try:
-                idx_s = twinotter.index_from_time(
-                    time - goes.time_resolution, dataset.Time)
-            except TypeError:
-                # If we try to before the dataset we get a TypeError as np.where doesn't
-                # return anything
-                idx_s = 0
-            try:
-                idx_f = twinotter.index_from_time(
-                    time + goes.time_resolution, dataset.Time)
-            except TypeError:
-                # Same as above but for looking at the end of the dataset
-                idx_f = -1
-
-            # Plot the full flight path in a faded red
-            plots.plot_flight_path(ax=ax, ds=dataset, vmin=-10, vmax=0, cmap='Reds', alpha=0.3, linewidths=3, add_cmap=False)
-
-            # Plot the +-10 mins of flight path normally
-            plots.plot_flight_path(ax=ax, ds=dataset.isel(Time=slice(idx_s, idx_f)), cmap='cool', mark_end_points=False)
-
-            # Add a marker with the current position and rotation
-            ds_now = dataset.isel(Time=int((idx_s + idx_f)/2))
-            plots.add_flight_position(ax, ds_now)
+            overlay_flight_path_segment(ax, dataset, time)
 
             path_fig = output_path + '/' + 'flight{}_track_frame_{:03d}.png'.format(
                 dataset.attrs['flight_number'], n)
@@ -108,7 +69,56 @@ def generate(flight_data_path, goes_path=".", output_path="."):
             time += substep
             n += 1
 
-    return
+
+def make_frame(goes_data):
+    # create figure
+    bbox = [-60, -56.4, 12, 14.4]
+    domain_aspect = (bbox[3] - bbox[2]) / (bbox[1] - bbox[0])
+    fig = plt.figure(figsize=(11., domain_aspect * 10), dpi=96)
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    ax.set_extent(bbox, crs=ccrs.PlateCarree())
+
+    plots.add_land_and_sea(ax)
+
+    # Plot the current satellite image
+    plt.pcolormesh(
+        goes_data.longitude,
+        goes_data.latitude,
+        goes_data.refl_0_65um_nom,
+        cmap='Greys_r')
+
+    eurec4a.add_halo_circle(ax, color='teal', linewidth=3)
+
+    return fig, ax
+
+
+def overlay_flight_path_segment(ax, flight_data, time):
+    # Plot the flight track +- the satellite resolution
+    try:
+        idx_s = twinotter.index_from_time(
+            time - goes.time_resolution, flight_data.Time)
+    except TypeError:
+        # If we try to before the dataset we get a TypeError as np.where doesn't
+        # return anything
+        idx_s = 0
+    try:
+        idx_f = twinotter.index_from_time(
+            time + goes.time_resolution, flight_data.Time)
+    except TypeError:
+        # Same as above but for looking at the end of the dataset
+        idx_f = -1
+
+    # Plot the full flight path in a faded red
+    plots.plot_flight_path(ax=ax, ds=flight_data, vmin=-10, vmax=0, cmap='Reds', alpha=0.3,
+                           linewidths=3, add_cmap=False)
+
+    # Plot the +-10 mins of flight path normally
+    plots.plot_flight_path(ax=ax, ds=flight_data.isel(Time=slice(idx_s, idx_f)),
+                           cmap='cool', mark_end_points=False)
+
+    # Add a marker with the current position and rotation
+    ds_now = flight_data.isel(Time=int((idx_s + idx_f) / 2))
+    plots.add_flight_position(ax, ds_now)
 
 
 if __name__ == '__main__':
