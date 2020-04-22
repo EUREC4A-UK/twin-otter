@@ -6,6 +6,18 @@ https://stackoverflow.com/questions/52105543/drawing-circles-with-cartopy-in-ort
 import cartopy.crs as ccrs
 import matplotlib.patches as mpatches
 
+colors = dict(
+    ATR='DeepOrange',
+    Atalante='Fuchsia',
+    BCO='royalblue',
+    HALO='teal',
+    P3='grey',
+    TO='tab:red',
+    MSM='indigo',
+    Meteor='darkblue',
+    RHB='deepskyblue'
+
+)
 
 # HALO circle attributes
 lat = 13 + (18/60)
@@ -19,7 +31,7 @@ def _compute_radius(ortho, radius_degrees):
     return abs(y1)
 
 
-def add_halo_circle(ax, color='red', alpha=0.3, **kwargs):
+def add_halo_circle(ax, color=colors["HALO"], alpha=0.3, **kwargs):
     # Define the projection used to display the circle:
     proj = ccrs.Orthographic(central_longitude=lon, central_latitude=lat)
 
@@ -34,5 +46,3 @@ def add_halo_circle(ax, color='red', alpha=0.3, **kwargs):
         alpha=alpha,
         **kwargs
     ))
-
-    return
