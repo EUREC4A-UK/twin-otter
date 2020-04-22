@@ -44,7 +44,14 @@ setuptools.setup(
     keywords='',
     name='twinotter',
     packages=setuptools.find_packages(
-        include=['twinotter', 'twinotter.plots', 'twinotter.data']
+        include=[
+            'twinotter',
+            'twinotter.plots',
+            'twinotter.data',
+            'twinotter.external',
+            'twinotter.external.eurec4a',
+            'twinotter.external.goes',
+        ]
     ),
     setup_requires=setup_requirements,
     test_suite='tests',
