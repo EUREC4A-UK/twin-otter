@@ -2,6 +2,7 @@ from pathlib import Path
 import tarfile
 import tempfile
 import shutil
+import datetime
 
 import requests
 import pytest
@@ -62,6 +63,13 @@ def testdata(scope="session"):
         flight_data_path=str(p_root/"obs"/"flight330"),
         flight_legs_data_path=str(p_root/"obs"/"flight330"/"flight330-legs.csv"),
         goes_path=str(p_root/"goes"),
+        goes_time=datetime.datetime(
+            year=2020,
+            month=1,
+            day=24,
+            hour=14,
+            minute=0,
+        ),
     )
 
 
