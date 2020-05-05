@@ -17,11 +17,9 @@ import pytz
 
 import worldview_dl
 
-import twinotter
-import twinotter.util
-from twinotter import summary
-from twinotter.external import goes
-from twinotter.util import scripting
+from .. import goes
+from ... import load_flight, summary, util
+from ...util import scripting
 
 
 def main():
@@ -42,7 +40,7 @@ def get_images(
         image_resolution (float):
         bbox: The spatial area to use in the format [S W N E] with units degrees
     """
-    dataset = twinotter.load_flight(flight_data_path)
+    dataset = load_flight(flight_data_path)
 
     date = summary.extract_date(dataset)
     date = date.astimezone(pytz.utc)
@@ -50,8 +48,8 @@ def get_images(
     start = date + summary.extract_time(dataset, 'time_coverage_start')
     end = date + summary.extract_time(dataset, 'time_coverage_end')
 
-    start = twinotter.util.round_datetime(start, goes.time_resolution)
-    end = twinotter.util.round_datetime(end, goes.time_resolution) + goes.time_resolution
+    start = util.round_datetime(start, goes.time_resolution)
+    end = util.round_datetime(end, goes.time_resolution) + goes.time_resolution
 
     time = start
     while time <= end:

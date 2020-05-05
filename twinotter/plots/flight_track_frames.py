@@ -19,10 +19,9 @@ import datetime
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 
-import twinotter
-from twinotter import plots
-from twinotter.external import eurec4a, goes
-from twinotter.util import scripting
+from .. import load_flight, plots, util
+from ..util import scripting
+from ..external import eurec4a, goes
 
 
 def main():
@@ -34,19 +33,19 @@ def generate(flight_data_path, goes_path=".", output_path="."):
     substep = datetime.timedelta(minutes=1)
 
     # Load flight data
-    dataset = twinotter.load_flight(flight_data_path)
+    dataset = load_flight(flight_data_path)
 
     # Get start and end time for satellite data from flight
     start = dataset.Time[0].data.astype('M8[ms]').astype('O')[()]
     end = dataset.Time[-1].data.astype('M8[ms]').astype('O')[()]
 
     # Start the satellite images at the nearest time to the flight start
-    sat_image_time = twinotter.util.round_datetime(start, goes.time_resolution)
+    sat_image_time = util.round_datetime(start, goes.time_resolution)
 
     # Loop over satellite images
     n = 0
     # Start on the minute
-    time = twinotter.util.round_datetime(
+    time = util.round_datetime(
         start, datetime.timedelta(minutes=1), mode='ceil')
     while time <= end:
         # Load the current satellite image
