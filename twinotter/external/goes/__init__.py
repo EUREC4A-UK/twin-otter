@@ -5,7 +5,6 @@ import datetime
 import parse
 import numpy as np
 import xarray as xr
-from osgeo import gdal
 
 
 # Filenames of netCDF files on the AERIS server
@@ -54,7 +53,9 @@ def find_images_in_path(path, layer=default_layer):
     return sorted(list(path.rglob(filename_to_search)))
 
 
-def load_image(filename):
+def _load_image(filename):
+    from osgeo import gdal
+
     # Load GeoTiff data
     ds = gdal.Open(filename)
 
