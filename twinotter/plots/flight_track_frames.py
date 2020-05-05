@@ -20,7 +20,7 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 
 import twinotter
-from twinotter import plots, summary
+from twinotter import plots
 from twinotter.external import eurec4a, goes
 from twinotter.util import scripting
 
@@ -37,12 +37,11 @@ def generate(flight_data_path, goes_path=".", output_path="."):
     dataset = twinotter.load_flight(flight_data_path)
 
     # Get start and end time for satellite data from flight
-    start = summary.extract_time(dataset, 'time_coverage_start')
-    end = summary.extract_time(dataset, 'time_coverage_end')
+    start = dataset.Time[0].data.astype('M8[ms]').astype('O')[()]
+    end = dataset.Time[-1].data.astype('M8[ms]').astype('O')[()]
 
-    # Get corresponding satellite time for start
-    date = summary.extract_date(dataset)
-    sat_image_time = twinotter.util.round_datetime(date + start, goes.time_resolution)
+    # Start the satellite images at the nearest time to the flight start
+    sat_image_time = twinotter.util.round_datetime(start, goes.time_resolution)
 
     # Loop over satellite images
     n = 0
@@ -54,7 +53,7 @@ def generate(flight_data_path, goes_path=".", output_path="."):
         goes_data = goes.load_nc(goes_path, sat_image_time)
 
         sat_image_time += goes.time_resolution
-        while time < sat_image_time - date - goes.time_resolution / 2:
+        while time < sat_image_time - goes.time_resolution / 2 and time <= end:
             fig, ax = make_frame(goes_data)
 
             overlay_flight_path_segment(ax, dataset, time)
