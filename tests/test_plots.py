@@ -1,12 +1,21 @@
 from unittest.mock import patch
 import pytest
 from pathlib import Path
+import os
+
+import matplotlib as mpl
 
 import twinotter.plots.basic_flight_track
 import twinotter.plots.vertical_profile
 import twinotter.plots.heights_and_legs
 import twinotter.plots.interactive_flight_track
 import twinotter.quicklook
+
+# Fix for CI tests of tk GUI
+# https://stackoverflow.com/a/50089385/8270394
+if os.environ.get('DISPLAY', '') == '':
+    print('no display found. Using non-interactive Agg backend')
+    mpl.use('Agg')
 
 
 @patch('matplotlib.pyplot.savefig')
