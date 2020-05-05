@@ -11,12 +11,6 @@ import twinotter.plots.heights_and_legs
 import twinotter.plots.interactive_flight_track
 import twinotter.quicklook
 
-# Fix for CI tests of tk GUI
-# https://stackoverflow.com/a/50089385/8270394
-if os.environ.get('DISPLAY', '') == '':
-    print('no display found. Using non-interactive Agg backend')
-    mpl.use('Agg')
-
 
 @patch('matplotlib.pyplot.savefig')
 def test_basic_flight_path(mock_savefig, testdata):
@@ -64,6 +58,11 @@ def test_quicklook_plot(mock_savefig, testdata):
 
 @patch('tkinter.mainloop')
 def test_interactive_flight_path(mock_mainloop, testdata):
+    # Fix for CI tests of tk GUI
+    # https://stackoverflow.com/a/50089385/8270394
+    if os.environ.get('DISPLAY', '') == '':
+        mpl.use('Agg')
+
     twinotter.plots.interactive_flight_track.start_gui(
         flight_data_path=testdata['flight_data_path'])
     mock_mainloop.assert_called_once()
