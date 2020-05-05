@@ -8,3 +8,5 @@ def test_load_nc(testdata):
         path=testdata["goes_path"],
         time=testdata['goes_time'],
     )
+
+    assert len(ds) == 93

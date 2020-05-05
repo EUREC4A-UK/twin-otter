@@ -3,6 +3,7 @@ import pytest
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
 
 import twinotter.plots.basic_flight_track
 import twinotter.plots.flight_track_frames
@@ -28,6 +29,16 @@ def test_flight_track_frame(testdata):
     fig, ax = twinotter.plots.flight_track_frames.make_frame(ds)
 
     plt.close(fig)
+
+
+def test_overlay_flight_path_segment(testdata):
+    twinotter.plots.flight_track_frames.overlay_flight_path_segment(
+        ax=plt.axes(projection=ccrs.PlateCarree()),
+        flight_data=twinotter.load_flight(testdata["flight_data_path"]),
+        time=testdata["goes_time"]
+    )
+
+    plt.close()
 
 
 @patch('matplotlib.pyplot.show')
