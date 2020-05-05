@@ -48,6 +48,7 @@ setuptools.setup(
             'twinotter',
             'twinotter.plots',
             'twinotter.data',
+            'twinotter.util',
             'twinotter.external',
             'twinotter.external.eurec4a',
             'twinotter.external.goes',
