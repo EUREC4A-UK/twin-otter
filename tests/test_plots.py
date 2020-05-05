@@ -1,10 +1,14 @@
 from unittest.mock import patch
 import pytest
 from pathlib import Path
+import os
+
+import matplotlib as mpl
 
 import twinotter.plots.basic_flight_track
 import twinotter.plots.vertical_profile
 import twinotter.plots.heights_and_legs
+import twinotter.plots.interactive_flight_track
 import twinotter.quicklook
 
 
@@ -52,9 +56,13 @@ def test_quicklook_plot(mock_savefig, testdata):
         fn_fig = str(figures_path/"Profile{}_skewt.png".format(n))
         mock_savefig.assert_any_call(fn_fig)
 
+@patch('tkinter.mainloop')
+def test_interactive_flight_path(mock_mainloop, testdata):
+    # Fix for CI tests of tk GUI
+    # https://stackoverflow.com/a/50089385/8270394
+    if os.environ.get('DISPLAY', '') == '':
+        mpl.use('Agg')
 
-# this doesn't run properly because of the gui needing to be opened
-# @patch('matplotlib.pyplot.show')
-# def test_interactive_flight_path(mock_show):
-    # twinotter.plots.interactive_flight_track.start_gui(flight_data_path="obs/flight330")
-    # mock_show.assert_called_once()
+    twinotter.plots.interactive_flight_track.start_gui(
+        flight_data_path=testdata['flight_data_path'])
+    mock_mainloop.assert_called_once()
