@@ -31,14 +31,14 @@ You can:
 
 install cartopy first via conda
 
-    $> conda install -c conda-forge cartopy
+    $> conda install -c conda-forge cartopy"<=0.17"
 
 or manually install the cartopy dependencies (Following [this stack overflow answer](https://stackoverflow.com/a/56956172))
 
     $> apt-get install libproj-dev proj-data proj-bin
     $> apt-get install libgeos-dev
     $> pip install cython
-    $> pip install cartopy
+    $> pip install cartopy"<=0.17"
 
 
 
