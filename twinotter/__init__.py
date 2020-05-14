@@ -11,6 +11,9 @@ import xarray as xr
 MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
 MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
 
+# A nice way of formatting the flight time
+time_of_day_format = "{hours:02d}:{minutes:02d}:{seconds:02d}"
+
 
 def _monkey_patch_xr_load():
     # by the CF-convections units should always be a string
@@ -122,17 +125,18 @@ def flight_leg_times(flight_legs, leg_name, leg_number=0):
     return start, end
 
 
-def index_from_time(timestr, time):
+def index_from_time(dt, time):
     """
     Args:
-        timestr (str): A string representing time of day formatted as "HH:MM:SS"
-        time (array):
+        dt (str | datetime.timedelta): A string representing time of day formatted as
+            "HH:MM:SS"
+        time (array): The time array from the dataset
 
     Returns:
         int:
     """
-    HH, MM, SS = parse.parse("{:d}:{:d}:{:d}", timestr)
-    dt = datetime.timedelta(hours=HH, minutes=MM, seconds=SS)
+    if type(dt) is str:
+        dt = datetime.timedelta(**parse.parse(time_of_day_format, dt).named)
 
     idx = int(np.where(time == dt.total_seconds())[0])
 

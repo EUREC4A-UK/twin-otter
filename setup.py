@@ -11,10 +11,13 @@ requirements = [
     'matplotlib',
     'pandas',
     'metpy',
-    'cartopy',
+    'cartopy<=0.17',
     'parse',
     'tqdm',
     'cftime',
+    'worldview_dl',
+    'docopt',
+    'netcdf4'
 ]
 
 setup_requirements = [ ]
@@ -42,7 +45,15 @@ setuptools.setup(
     keywords='',
     name='twinotter',
     packages=setuptools.find_packages(
-        include=['twinotter', 'twinotter.plots', 'twinotter.data']
+        include=[
+            'twinotter',
+            'twinotter.plots',
+            'twinotter.data',
+            'twinotter.util',
+            'twinotter.external',
+            'twinotter.external.eurec4a',
+            'twinotter.external.goes',
+        ]
     ),
     setup_requires=setup_requirements,
     test_suite='tests',
