@@ -2,10 +2,15 @@ from unittest.mock import patch
 import pytest
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+
 import twinotter.plots.basic_flight_track
+import twinotter.plots.flight_track_frames
 import twinotter.plots.vertical_profile
 import twinotter.plots.heights_and_legs
 import twinotter.quicklook
+import twinotter.external.goes
 
 
 @patch('matplotlib.pyplot.savefig')
@@ -14,6 +19,27 @@ def test_basic_flight_path(mock_savefig, testdata):
         flight_data_path=testdata['flight_data_path']
     )
     mock_savefig.assert_called_once()
+
+
+def test_flight_track_frame(testdata):
+    ds = twinotter.external.goes.load_nc(
+        path=testdata["goes_path"],
+        time=testdata['goes_time'],
+    )
+    fig, ax = twinotter.plots.flight_track_frames.make_frame(ds)
+
+    plt.close(fig)
+
+
+def test_overlay_flight_path_segment(testdata):
+    twinotter.plots.flight_track_frames.overlay_flight_path_segment(
+        ax=plt.axes(projection=ccrs.PlateCarree()),
+        flight_data=twinotter.load_flight(testdata["flight_data_path"]),
+        time=testdata["goes_time"]
+    )
+
+    plt.close()
+
 
 @patch('matplotlib.pyplot.show')
 def test_vertical_profile_plot(mock_showfig, testdata):
@@ -30,6 +56,7 @@ def test_heights_and_legs_plot(mock_savefig, testdata):
         legs_file=testdata['flight_legs_data_path']
     )
     mock_savefig.assert_called_once()
+
 
 @patch('matplotlib.pyplot.savefig')
 def test_quicklook_plot(mock_savefig, testdata):

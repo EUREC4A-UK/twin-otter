@@ -9,6 +9,9 @@ import xarray as xr
 MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
 MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
 
+# A nice way of formatting the flight time
+time_of_day_format = "{hours:02d}:{minutes:02d}:{seconds:02d}"
+
 
 def _monkey_patch_xr_load():
     # by the CF-convections units should always be a string

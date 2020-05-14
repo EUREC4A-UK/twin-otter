@@ -1,25 +1,30 @@
-import cartopy.crs as ccrs
-import xarray as xr
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import xarray as xr
 
 
-def plot_flight_path(ax, ds):
+def plot_flight_path(ax, ds, vmin=0, vmax=3, cmap_steps=12, cmap='jet',
+                     transform=ccrs.PlateCarree(), add_cmap=True, mark_end_points=True, **kwargs):
 
     lc = colored_line_plot(ax, ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS/1000,
-                           vmin=0, vmax=3, cmap_steps=12, cmap='jet',
-                           transform=ccrs.PlateCarree())
-    cbar = plt.colorbar(lc, ax=ax)
-    cbar.set_label('Altitude (km)')
+                           vmin=vmin, vmax=vmax, cmap_steps=cmap_steps, cmap=cmap,
+                           transform=transform, **kwargs)
+
+    if add_cmap:
+        cbar = plt.colorbar(lc, ax=ax)
+        cbar.set_label('Altitude (km)')
 
     ax.set_xlabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
-    ax.set_ylabel(xr.plot.utils.label_from_attrs(ds.LON_OXTS))
+    ax.set_ylabel(xr.plot.utils.label_from_attrs(ds.LAT_OXTS))
 
     # Add marker for start and end positions
-    ax.text(ds.LON_OXTS[0], ds.LAT_OXTS[0], 'S', transform=ccrs.PlateCarree())
-    ax.text(ds.LON_OXTS[-1], ds.LAT_OXTS[-1], 'F', transform=ccrs.PlateCarree())
+    if mark_end_points:
+        ax.text(ds.LON_OXTS[0], ds.LAT_OXTS[0], 'S', transform=ccrs.PlateCarree())
+        ax.text(ds.LON_OXTS[-1], ds.LAT_OXTS[-1], 'F', transform=ccrs.PlateCarree())
 
     return
 
@@ -84,3 +89,32 @@ def colored_line_plot(ax, x, y, color, vmin=None, vmax=None, cmap='gray',
         ax.autoscale()
 
     return lc
+
+
+def add_land_and_sea(ax):
+    # Shade land and sea
+    ax.imshow(
+        np.tile(
+            np.array([[cfeature.COLORS['water'] * 255]], dtype=np.uint8),
+            [2, 2, 1]),
+        origin='upper',
+        transform=ccrs.PlateCarree(),
+        extent=[-180, 180, -180, 180])
+
+    ax.add_feature(cfeature.NaturalEarthFeature(
+        'physical',
+        'land',
+        '10m',
+        edgecolor='black',
+        facecolor=cfeature.COLORS['land']
+    ))
+
+    ax.gridlines(linestyle='--', color='black', draw_labels=True)
+
+    return
+
+
+def add_flight_position(ax, dataset):
+    ax.plot(dataset.LON_OXTS, dataset.LAT_OXTS, marker=(2, 0, -float(dataset.HDG_OXTS)), color='red')
+    ax.plot(dataset.LON_OXTS, dataset.LAT_OXTS, marker=(3, 0, -float(dataset.HDG_OXTS)), color='red')
+    return
