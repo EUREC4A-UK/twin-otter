@@ -38,7 +38,6 @@ def download_goes_testdata():
     with requests.get(GOES_TESTDATA_URL, stream=True) as r:
         with open(testdata_goes_dir / GOES_TESTDATA_URL.split("/")[-1], 'wb') as f:
             shutil.copyfileobj(r.raw, f)
-    pass
 
 
 @pytest.fixture
