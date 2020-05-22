@@ -73,19 +73,17 @@ def make_frame(goes_data):
     bbox = [-60, -56.4, 12, 14.4]
     domain_aspect = (bbox[3] - bbox[2]) / (bbox[1] - bbox[0])
     fig = plt.figure(figsize=(11., domain_aspect * 10), dpi=96)
-    ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.set_extent(bbox, crs=ccrs.PlateCarree())
+    projection = ccrs.PlateCarree()
+    ax = plt.axes(projection=projection)
 
     plots.add_land_and_sea(ax)
 
     # Plot the current satellite image
-    plt.pcolormesh(
-        goes_data.longitude,
-        goes_data.latitude,
-        goes_data.refl_0_65um_nom,
-        cmap='Greys_r')
+    goes.plot.geocolor(ax, goes_data, projection)
 
     eurec4a.add_halo_circle(ax, color='teal', linewidth=3)
+
+    ax.set_extent(bbox, crs=projection)
 
     return fig, ax
 
