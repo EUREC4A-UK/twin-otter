@@ -2,12 +2,8 @@ from pathlib import Path
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mplticker
-import pandas as pd
-import xarray as xr
-import numpy as np
 
-from .. import load_flight
+from .. import load_flight, load_legs, leg_times_as_datetime
 
 
 colors = {
@@ -29,8 +25,8 @@ def main():
 
 def generate(flight_data_path, legs_file, show_gui=False):
     ds = load_flight(flight_data_path)
-    df_legs = pd.read_csv(legs_file)
-    ds_legs = xr.Dataset.from_dataframe(df_legs)
+    legs = load_legs(legs_file)
+    leg_times_as_datetime(legs, ds.Time[0].dt.floor('D').data)
 
     # Produce the basic time-height plot
     fig, ax1 = plt.subplots()
@@ -41,34 +37,10 @@ def generate(flight_data_path, legs_file, show_gui=False):
     ax2.set_ylabel('Altitude (km)')
 
     # For each leg overlay a coloured line onto the time-height plot
-    for i in tqdm(ds_legs.index):
-        ds_leg = ds_legs.sel(index=i)
+    for (idx, leg) in tqdm(legs.iterrows(), total=legs.shape[0]):
+        label = leg.Label
 
-        s_start = str(ds_leg.Start.values)
-        s_end = str(ds_leg.End.values)
-        label = str(ds_leg.Label.values)
-
-        if 'T' not in s_start or 'T' not in s_end:
-            date_start = ds.isel(Time=0).Time.dt.floor('D')
-            date_end = ds.isel(Time=-1).Time.dt.floor('D')
-
-            if date_start != date_end:
-                raise Exception("The leg start and end (`{}` and `{}`)"
-                                " don't contain a date and the flight"
-                                " spans more than one day. Not sure"
-                                " which day the given leg is on")
-
-            start_date_str = str(date_start.values).split('T')[0]
-            end_date_str = str(date_end.values).split('T')[0]
-
-            start_datetime_str = "{}T{}".format(start_date_str, s_start)
-            end_datetime_str = "{}T{}".format(end_date_str, s_end)
-
-            ds_section = ds.sel(
-                Time=slice(start_datetime_str, end_datetime_str)
-            )
-        else:
-            ds_section = ds.sel(Time=slice(s_start, s_end))
+        ds_section = ds.sel(Time=slice(leg.Start, leg.End))
 
         ax2.plot(ds_section.Time, ds_section.ALT_OXTS / 1000,
                  color=colors[label], linewidth=2, alpha=0.75)

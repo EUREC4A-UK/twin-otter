@@ -1,15 +1,16 @@
 from pathlib import Path
 import re
-import datetime
 
-import parse
-import numpy as np
+import pandas as pd
 import xarray as xr
 
 
 # netCDF naming: core_masin_YYYYMMDD_rNNN_flightNNN_Nhz.nc
 MASIN_CORE_FORMAT = "core_masin_{date}_r{revision}_flight{flight_num}_{freq}hz.nc"
 MASIN_CORE_RE = "core_masin_(?P<date>\d{8})_r(?P<revision>\d{3})_flight(?P<flight_num>\d{3})_(?P<freq>\d+)hz\.nc"
+
+# A nice way of formatting the flight time
+time_of_day_format = "{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
 def _monkey_patch_xr_load():
@@ -104,39 +105,38 @@ def open_masin_dataset(filename, meta, debug=False):
     return ds
 
 
-def flight_leg_times(flight_legs, leg_name, leg_number=0):
-    """Get a slice representing a single section of the flight
+def load_legs(filename):
+    """Read a legs file created with twinotter.plots.interactive_flight_track
+
     Args:
-        flight_legs (pandas.DataFrame):
-        leg_name (str):
-        leg_number (int): For multiple of the same type of leg within a flight,
-            select which leg you want. Default is zero
+        filename (str):
 
     Returns:
-        slice:
+        pandas.DataFrame:
     """
-    idx = flight_legs[flight_legs['Label'] == leg_name].index[leg_number]
-    start = flight_legs['Start'][idx]
-    end = flight_legs['End'][idx]
 
-    return start, end
+    # Load the legs file and convert the times to timedeltas
+    # (Saved as the string representation of datetime.timedelta)
+    legs = pd.read_csv(
+        filename, parse_dates=["Start", "End"], date_parser=pd.to_timedelta)
+
+    return legs
 
 
-def index_from_time(timestr, time):
-    """
+def leg_times_as_datetime(legs, start):
+    """Convert the times of the legs from timedelta to datetime
+
+    By default the legs labelled in twinotter.plots.interactive_flight_track are
+    timedeltas taken from when the files had time in units of seconds since the start of
+    the day. So we just need to add back on the start time (i.e. a datetime.datetime)
+    of the start of the day.
+
     Args:
-        timestr (str): A string representing time of day formatted as "HH:MM:SS"
-        time (array):
-
-    Returns:
-        int:
+        legs (pandas.DataFrame):
+        start (datetime.datetime:
     """
-    HH, MM, SS = parse.parse("{:d}:{:d}:{:d}", timestr)
-    dt = datetime.timedelta(hours=HH, minutes=MM, seconds=SS)
-
-    idx = int(np.where(time == dt.total_seconds())[0])
-
-    return idx
+    legs.Start += start
+    legs.End += start
 
 
 def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data_path=None):
