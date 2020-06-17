@@ -1,11 +1,9 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import pandas as pd
-import xarray as xr
 from tqdm import tqdm
 
-from . import load_flight
+from . import load_flight, load_legs, leg_times_as_datetime
 from .plots import vertical_profile
 
 
@@ -25,42 +23,15 @@ def main():
 
 def generate(flight_data_path, legs_file):
     ds = load_flight(flight_data_path)
-    df_legs = pd.read_csv(legs_file)
-    ds_legs = xr.Dataset.from_dataframe(df_legs)
+    legs = load_legs(legs_file)
+    leg_times_as_datetime(legs, ds.Time[0].dt.floor('D').data)
 
-    flight_num = ds.attrs['flight_number']
     path_figures = Path(flight_data_path)/"figures"
 
     counters = dict(Leg=0, Profile=0)
 
-    for i in tqdm(ds_legs.index):
-        ds_leg = ds_legs.sel(index=i)
-
-        s_start = str(ds_leg.Start.values)
-        s_end = str(ds_leg.End.values)
-        label = str(ds_leg.Label.values)
-
-        if not 'T' in s_start or not 'T' in s_end:
-            date_start = ds.isel(Time=0).Time.dt.floor('D')
-            date_end = ds.isel(Time=-1).Time.dt.floor('D')
-
-            if date_start != date_end:
-                raise Exception("The leg start and end (`{}` and `{}`)"
-                                " don't contain a date and the flight"
-                                " spans more than one day. Not sure"
-                                " which day the given leg is on")
-
-            start_date_str = str(date_start.values).split('T')[0]
-            end_date_str = str(date_end.values).split('T')[0]
-
-            start_datetime_str = "{}T{}".format(start_date_str, s_start)
-            end_datetime_str = "{}T{}".format(end_date_str, s_end)
-
-            ds_section = ds.sel(
-                Time=slice(start_datetime_str, end_datetime_str)
-            )
-        else:
-            ds_section = ds.sel(Time=slice(s_start, s_end))
+    for (idx, leg) in tqdm(legs.iterrows(), total=legs.shape[0]):
+        label = leg.Label
 
         n = counters[label]
         if label == 'Leg':
@@ -73,6 +44,7 @@ def generate(flight_data_path, legs_file):
             raise NotImplementedError(label)
         counters[label] += 1
 
+        ds_section = ds.sel(Time=slice(leg.Start, leg.End))
         fig = plot_func(ds_section)
         path_figures.mkdir(exist_ok=True)
         plt.savefig(str(path_figures/fn))
