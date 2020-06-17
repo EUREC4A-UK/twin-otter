@@ -10,7 +10,7 @@ def test_summary(testdata):
 
     twinotter.summary.generate(
         flight_data_path=testdata["flight_data_path"],
-        flight_summary_path=flight_summary_path
+        flight_summary_path=flight_summary_path,
     )
 
     # Check the summary file has been produced
