@@ -20,13 +20,15 @@ def main():
     import argparse
 
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_data_path')
-    argparser.add_argument('flight_summary_path')
+    argparser.add_argument("flight_data_path")
+    argparser.add_argument("flight_summary_path")
 
     args = argparser.parse_args()
 
-    generate(flight_data_path=args.flight_data_path,
-             flight_summary_path=args.flight_summary_path)
+    generate(
+        flight_data_path=args.flight_data_path,
+        flight_summary_path=args.flight_summary_path,
+    )
 
     return
 
@@ -47,27 +49,26 @@ def generate(flight_data_path, flight_summary_path):
         for index, entry in flight_summary.iterrows():
             # Get the filename of existing entries in flight_information.csv
             file_path = generate_file_path(
-                flight_number=entry['Flight Number'],
-                date=entry['Date'],
-                frequency=entry['Frequency'],
-                revision=entry['Revision'],
+                flight_number=entry["Flight Number"],
+                date=entry["Date"],
+                frequency=entry["Frequency"],
+                revision=entry["Revision"],
                 flight_data_path=flight_data_path,
             )
 
             # Check which files are already contained in the .csv
             if file_path in file_paths:
-                print('{} already in .csv'.format(file_path.name))
+                print("{} already in .csv".format(file_path.name))
                 file_paths.remove(file_path)
 
             # Other files in the .csv but not in the folder
             else:
-                print('{} not available'.format(file_path.name))
+                print("{} not available".format(file_path.name))
 
     else:
         flight_summary = pd.DataFrame(
-            columns=['Flight Number', 'Date',
-                     'Start', 'End',
-                     'Revision', 'Frequency'])
+            columns=["Flight Number", "Date", "Start", "End", "Revision", "Frequency"]
+        )
 
     # Remaining files are present but not in the .csv
     # Add these new files to the .csv
@@ -76,26 +77,29 @@ def generate(flight_data_path, flight_summary_path):
         flight_info = parse.parse(MASIN_CORE_FORMAT, path.name)
 
         # Format the date so it is more readable in the csv
-        date = flight_info['date']
+        date = flight_info["date"]
         YYYY, MM, DD = int(date[0:4]), int(date[4:6]), int(date[6:8])
         date = datetime.datetime(YYYY, MM, DD)
 
         # Extract flight start and end from the netCDF file
         dataset = xr.open_dataset(path, decode_times=False)
-        start = extract_time(dataset, 'time_coverage_start')
-        end = extract_time(dataset, 'time_coverage_end')
+        start = extract_time(dataset, "time_coverage_start")
+        end = extract_time(dataset, "time_coverage_end")
 
         # Add flight information to .csv
-        flight_summary = flight_summary.append({
-            'Flight Number': int(flight_info['flight_num']),
-            'Date': date.strftime('%Y-%m-%d'),
-            'Start': str(start),
-            'End': str(end),
-            'Revision': int(flight_info['revision']),
-            'Frequency': int(flight_info['freq'])
-        }, ignore_index=True)
+        flight_summary = flight_summary.append(
+            {
+                "Flight Number": int(flight_info["flight_num"]),
+                "Date": date.strftime("%Y-%m-%d"),
+                "Start": str(start),
+                "End": str(end),
+                "Revision": int(flight_info["revision"]),
+                "Frequency": int(flight_info["freq"]),
+            },
+            ignore_index=True,
+        )
 
-    flight_summary.sort_values('Flight Number', inplace=True)
+    flight_summary.sort_values("Flight Number", inplace=True)
     print(flight_summary)
 
     # Overwrite the old csv
@@ -106,9 +110,9 @@ def generate(flight_data_path, flight_summary_path):
 
 def extract_date(dataset):
     # Get date, flight number, revision and frequency from the filename
-    flight_info = parse.parse(MASIN_CORE_FORMAT, dataset.attrs['source_file'].name)
+    flight_info = parse.parse(MASIN_CORE_FORMAT, dataset.attrs["source_file"].name)
 
-    date = flight_info['date']
+    date = flight_info["date"]
     YYYY, MM, DD = int(date[0:4]), int(date[4:6]), int(date[6:8])
     return datetime.datetime(YYYY, MM, DD)
 
@@ -122,5 +126,5 @@ def extract_time(dataset, name):
     return datetime.timedelta(**parse.parse(time_format, time).named)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

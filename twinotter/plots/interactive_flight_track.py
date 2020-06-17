@@ -22,8 +22,9 @@ from . import plot_flight_path
 
 def main():
     import argparse
+
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_data_path')
+    argparser.add_argument("flight_data_path")
 
     args = argparser.parse_args()
 
@@ -41,17 +42,18 @@ def start_gui(flight_data_path):
     flight_day_start = pd.to_datetime(ds.Time[0].dt.floor("D").data)
 
     root = tkinter.Tk()
-    root.wm_title("Interactive Flight Track: Flight {}".format(
-        ds.attrs['flight_number']))
+    root.wm_title(
+        "Interactive Flight Track: Flight {}".format(ds.attrs["flight_number"])
+    )
 
     # Plot the main variable of interest
     # Change this to whatever variable you want or add additional figures here
     fig1, ax1a = plt.subplots()
-    ax1a.plot(ds.Time, ds.ROLL_OXTS, linestyle='--', alpha=0.5)
-    ax1a.set_label('Roll Angle')
+    ax1a.plot(ds.Time, ds.ROLL_OXTS, linestyle="--", alpha=0.5)
+    ax1a.set_label("Roll Angle")
     ax1b = ax1a.twinx()
-    ax1b.plot(ds.Time, ds.ALT_OXTS/1000)
-    ax1b.set_ylabel('Altitude (km)')
+    ax1b.plot(ds.Time, ds.ALT_OXTS / 1000)
+    ax1b.set_ylabel("Altitude (km)")
 
     # Plot flight path with colours for altitude
     fig2, ax2 = plt.subplots(subplot_kw=dict(projection=ccrs.PlateCarree()),)
@@ -63,7 +65,7 @@ def start_gui(flight_data_path):
     fig2.tight_layout()
 
     # Save flight leg start and end points
-    leg_info = pd.DataFrame(columns=['Label', 'Start', 'End'])
+    leg_info = pd.DataFrame(columns=["Label", "Start", "End"])
 
     # Add the figures to as TK window
     figure_area = tkinter.Frame()
@@ -83,7 +85,8 @@ def start_gui(flight_data_path):
 
     def _save():
         filename = filedialog.asksaveasfilename(
-            initialfile="flight{}-legs.csv".format(ds.attrs['flight_number']))
+            initialfile="flight{}-legs.csv".format(ds.attrs["flight_number"])
+        )
         leg_info.to_csv(filename)
 
     save_button = tkinter.Button(master=button_area, text="Save", command=_save)
@@ -114,25 +117,29 @@ def start_gui(flight_data_path):
         idx_start = find_nearest_point(start, time)
         idx_end = find_nearest_point(end, time)
 
-        leg_info = leg_info.append({
-            'Label': label,
-            'Start': str(time[idx_start] - flight_day_start),
-            'End': str(time[idx_end] - flight_day_start),
-        }, ignore_index=True)
+        leg_info = leg_info.append(
+            {
+                "Label": label,
+                "Start": str(time[idx_start] - flight_day_start),
+                "End": str(time[idx_end] - flight_day_start),
+            },
+            ignore_index=True,
+        )
 
         return
 
-    selector = SpanSelector(
-        ax1b, highlight_leg, direction='horizontal')
+    selector = SpanSelector(ax1b, highlight_leg, direction="horizontal")
 
     tkinter.mainloop()
 
 
 def find_nearest_point(value, points):
-    return int(np.argmin(np.abs(value-points)))
+    return int(np.argmin(np.abs(value - points)))
 
 
 t0 = datetime.datetime(1, 1, 1)
+
+
 def _convert_wacky_date_format(wacky_time):
     # The twinotter MASIN data is loaded in with a datetime coordinate but when this is
     # used on the interactive plot the value returned from the click is in days from the
@@ -142,5 +149,5 @@ def _convert_wacky_date_format(wacky_time):
     return t0 + datetime.timedelta(days=wacky_time) - datetime.timedelta(days=1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

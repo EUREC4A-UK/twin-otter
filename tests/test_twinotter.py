@@ -6,9 +6,7 @@ import twinotter
 
 
 def test_load_flight(testdata):
-    ds = twinotter.load_flight(
-        flight_data_path=testdata["flight_data_path"]
-    )
+    ds = twinotter.load_flight(flight_data_path=testdata["flight_data_path"])
 
     # Check that the dataset still contains the right number of variables
     assert len(ds) == 58
@@ -25,7 +23,5 @@ def test_load_flight(testdata):
 
 def test_load_flight_empty_fails(testdata_empty):
     with pytest.raises(FileNotFoundError):
-        twinotter.load_flight(
-            flight_data_path=testdata_empty["flight_data_path"]
-        )
+        twinotter.load_flight(flight_data_path=testdata_empty["flight_data_path"])
     return
