@@ -1,13 +1,21 @@
+import numpy as np
+import scipy.constants
+
 import xarray as xr
 from metpy import constants
 import metpy.calc
 
 
 def calculate(name, ds):
-
     # If the variable is in the dataset, just return it
     if name in ds:
         return ds[name]
+
+    # If the variable name is in the translation table return the variable but renamed
+    elif name in translation_table:
+        result = ds[translation_table[name]].copy()
+        _rename_xarray(result, name)
+        return result
 
     # Otherwise calculate the requested variable using variables in the dataset
     elif name in available:
@@ -15,10 +23,16 @@ def calculate(name, ds):
         for argument_name in available[name]["arguments"]:
             arguments.append(calculate(argument_name, ds))
 
-        # Metpy functions return a pint.Quantity so convert to an xarray.DataArray
-        # consistent with the input dataset
-        quantity = available[name]["function"](*arguments)
-        return _pint_to_xarray(quantity, ds, name)
+        result = available[name]["function"](*arguments)
+
+        if type(result) is not xr.DataArray:
+            # Metpy functions return a pint.Quantity so convert to an xarray.DataArray
+            # consistent with the input dataset
+            return _pint_to_xarray(result, ds, name)
+
+        else:
+            _rename_xarray(result, name)
+            return result
 
     else:
         raise ValueError("Can not calculate {} from dataset".format(name))
@@ -33,6 +47,24 @@ def specific_humidity(dataset):
     )
 
     return q
+
+
+def combine_temperatures(nondeiced_temperature, deiced_temperature):
+    # Use the non-deiced temperature by default
+    temperature = nondeiced_temperature.copy()
+
+    # Replace with the deiced temperature where the non-deiced temperature is below
+    # freezing
+    frozen = np.where(temperature < scipy.constants.zero_Celsius)
+    temperature[frozen] = deiced_temperature[frozen]
+
+    return temperature
+
+
+def _rename_xarray(array, name):
+    array.rename(name)
+    array.attrs["standard_name"] = name
+    del array.attrs["long_name"]
 
 
 def _pint_to_xarray(quantity, ds, name):
@@ -63,10 +95,15 @@ def _pint_to_xarray(quantity, ds, name):
 # A dictionary mapping variables that can be calculated to the functions to calculate
 # them and arguments required as input to those functions
 available = dict(
-    potential_temperature=dict(
+    air_temperature=dict(
+        function=combine_temperatures,
+        arguments=["TAT_ND_R", "TAT_DI_R"],
+    ),
+
+    air_potential_temperature=dict(
         function=metpy.calc.potential_temperature,
-        arguments=["pressure", "temperature"]
-    )
+        arguments=["air_pressure", "air_temperature"]
+    ),
 )
 
 # Mapping from twin-otter variable names to CF standard names. This was generated from
@@ -104,8 +141,6 @@ translation_table = dict(
 
 # Duplicate CF standard names
 # TODO: write functions to combine these observations
-# air_temperature="TAT_DI_R",
-# air_temperature="TAT_ND_R",
 
 # platform_speed_wrt_air="TAS_DI_AIR",
 # platform_speed_wrt_air="TAS_ND_AIR",
