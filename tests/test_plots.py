@@ -58,7 +58,7 @@ def test_heights_and_legs_plot(mock_savefig, testdata):
     mock_savefig.assert_called_once()
 
 
-@patch('matplotlib.pyplot.savefig')
+@patch('matplotlib.figure.Figure.savefig')
 def test_quicklook_plot(mock_savefig, testdata):
     twinotter.quicklook.generate(
         flight_data_path=testdata['flight_data_path'],
