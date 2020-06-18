@@ -6,7 +6,25 @@ from metpy import constants
 import metpy.calc
 
 
+# TODO: As we add more functions to this there will be multiple paths to calculate
+# a single variable. Need to decide a way of figuring out the preferred path
+# TODO: add an avoid/ignore argument so that we can avoid calculations using broken
+# measurements
+# TODO: Add an option to append intermediate results to the dataset
 def calculate(name, ds):
+    """Calculate a variable from the given dataset
+
+    Args:
+        name (str): The CF standard name
+        ds (xarray.DataSet): The twin-otter MASIN dataset
+
+    Returns:
+        xarray.DataArray:
+
+    Raises:
+        ValueError: If the requested variable (or a variable required to calculate it)
+            is not available in the dataset
+    """
     # If the variable is in the dataset, just return it
     if name in ds:
         return ds[name]
