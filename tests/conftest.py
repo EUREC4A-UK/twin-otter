@@ -57,10 +57,18 @@ def testdata(scope="session"):
     shutil.copytree(testdata_dir / "obs", p_root / "obs")
     shutil.copytree(testdata_dir / "goes", p_root / "goes")
 
+    flight_data_path = p_root/"obs"/"flight330"
+
+    # Create an duplicate older MASIN file (to be avoided in tests)
+    (flight_data_path/"MASIN"/"core_masin_20200124_r001_flight330_1hz.nc").symlink_to(
+        flight_data_path/"MASIN"/"core_masin_20200124_r004_flight330_1hz.nc")
+
     yield dict(
         path=str(p_root/"obs"),
-        flight_data_path=str(p_root/"obs"/"flight330"),
-        flight_legs_data_path=str(p_root/"obs"/"flight330"/"flight330-legs.csv"),
+        flight_data_path=str(flight_data_path),
+        flight_data_file=str(flight_data_path / "MASIN" /
+                             "core_masin_20200124_r004_flight330_1hz.nc"),
+        flight_legs_data_path=str(flight_data_path/"flight330-legs.csv"),
         goes_path=str(p_root/"goes"),
         goes_time=datetime.datetime(
             year=2020,
