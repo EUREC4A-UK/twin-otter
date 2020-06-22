@@ -16,4 +16,10 @@ def test_summary(testdata):
     # Check the summary file has been produced
     assert flight_summary_path.is_file()
 
+    # Run again with the existing file
+    twinotter.summary.generate(
+        flight_data_path=testdata["flight_data_path"],
+        flight_summary_path=flight_summary_path
+    )
+
     return
