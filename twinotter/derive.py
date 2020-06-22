@@ -7,7 +7,8 @@ import metpy.calc
 
 
 # TODO: As we add more functions to this there will be multiple paths to calculate
-# a single variable. Need to decide a way of figuring out the preferred path
+# a single variable. Need to decide a way of figuring out the preferred path. e.g.
+# the current specific humidity calculation uses the LICOR data
 # TODO: add an avoid/ignore argument so that we can avoid calculations using broken
 # measurements
 # TODO: Add an option to append intermediate results to the dataset
@@ -120,7 +121,27 @@ available = dict(
 
     air_potential_temperature=dict(
         function=metpy.calc.potential_temperature,
-        arguments=["air_pressure", "air_temperature"]
+        arguments=["air_pressure", "air_temperature"],
+    ),
+
+    equivalent_potential_temperature=dict(
+        function=metpy.calc.equivalent_potential_temperature,
+        arguments=["air_pressure", "air_temperature", "dew_point_temperature"],
+    ),
+
+    humidity_mixing_ratio=dict(
+        function=metpy.calc.mixing_ratio_from_relative_humidity,
+        arguments=["relative_humidity", "air_temperature", "air_pressure"],
+    ),
+
+    relative_humidity=dict(
+        function=metpy.calc.relative_humidity_from_dewpoint,
+        arguments=["air_temperature", "dew_point_temperature"],
+    ),
+
+    virtual_potential_temperature=dict(
+        function=metpy.calc.virtual_temperature,
+        arguments=["air_potential_temperature", "humidity_mixing_ratio"],
     ),
 )
 
@@ -138,7 +159,7 @@ translation_table = dict(
     upwelling_shortwave_flux_in_air="SW_UP_C",
     downwelling_longwave_flux_in_air="LW_DN_C",
     upwelling_longwave_flux_in_air="LW_UP_C",
-    relative_humidity="HUM_ROSE",
+    # relative_humidity="HUM_ROSE",
     mole_fraction_of_water_vapor_in_air="H2O_LICOR",
     mole_fraction_of_carbon_dioxide_in_air="CO2_LICOR",
     flow_rate="L_FLOW_S",
