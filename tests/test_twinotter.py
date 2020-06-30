@@ -5,10 +5,13 @@ import numpy as np
 import twinotter
 
 
-def test_load_flight(testdata):
-    ds = twinotter.load_flight(
-        flight_data_path=testdata["flight_data_path"]
-    )
+@pytest.mark.parametrize("load_from,revision", [
+    ("flight_data_path", "most_recent"),
+    ("flight_data_path", 4),
+    ("flight_data_file", "most_recent"),
+])
+def test_load_flight(testdata, load_from, revision):
+    ds = twinotter.load_flight(flight_data_path=testdata[load_from], revision=revision)
 
     # Check that the dataset still contains the right number of variables
     assert len(ds) == 58
