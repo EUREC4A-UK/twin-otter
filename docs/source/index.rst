@@ -5,14 +5,16 @@
 
 Introduction
 ============
-.. include:: ../../README.md
+.. mdinclude:: ../../README.md
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+..  toctree::
+    :maxdepth: 2
+    :caption: Contents:
 
-   self
-   plots
+    self
+    overviews
+    plots
+    external/index
 
 Indices and tables
 ==================

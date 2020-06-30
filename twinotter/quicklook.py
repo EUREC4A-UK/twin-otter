@@ -1,3 +1,14 @@
+"""Quicklook plots for each leg over a single flight.
+
+Use the flight-legs csv produced from :mod:`twinotter.plots.interactive_flight_track`
+
+
+Usage::
+
+    $ python -m twinotter.quicklook <flight_data_path> <flight_legs>
+
+"""
+
 from pathlib import Path
 
 import matplotlib.pyplot as plt

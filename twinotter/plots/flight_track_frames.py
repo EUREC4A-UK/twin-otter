@@ -1,19 +1,21 @@
 """
+::
 
-Usage:
-    flight_track_frames.py  <flight_data_path> [<goes_path>] [-o <output_path>]
-    flight_track_frames.py  (-h | --help)
+    Usage:
+        flight_track_frames.py  <flight_data_path> [<goes_path>] [-o <output_path>]
+        flight_track_frames.py  (-h | --help)
 
-Arguments:
-    <flight_data_path>  Input flight data
-    <goes_path>         Folder containing downloaded GOES images [Default: "."]
-    <output_path>       Folder to put the output frames in [Default: "."]
+    Arguments:
+        <flight_data_path>  Input flight data
+        <goes_path>         Folder containing downloaded GOES images [Default: "."]
+        <output_path>       Folder to put the output frames in [Default: "."]
 
-Options:
-    -h --help        Show help
-    -o --output_path
+    Options:
+        -h --help        Show help
+        -o --output_path
 
 """
+
 import datetime
 
 import cartopy.crs as ccrs

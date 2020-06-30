@@ -3,8 +3,11 @@
 Plot a variable of interest and the flight track then click on either figure
 to mark the corresponding points on both figures.
 
-> python -m twinotter.plots.interactive_flight_track /path/to/data
+.. code-block:: console
+
+    $ python -m twinotter.plots.interactive_flight_track /path/to/data
 """
+
 import datetime
 import tkinter
 from tkinter import filedialog
