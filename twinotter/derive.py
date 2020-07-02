@@ -68,6 +68,15 @@ def specific_humidity(dataset):
     return q
 
 
+def along_track_wind(ds):
+    angle = np.arctan2(ds.U_OXTS, ds.V_OXTS)
+    magnitude = np.sqrt(ds.U_OXTS**2 + ds.V_OXTS**2)
+
+    flight_angle = np.deg2rad(ds.HDG_OXTS)
+
+    return magnitude * np.cos(angle - flight_angle)
+
+
 def combine_temperatures(nondeiced_temperature, deiced_temperature):
     # Use the non-deiced temperature by default
     temperature = nondeiced_temperature.copy()
