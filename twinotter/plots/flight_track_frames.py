@@ -1,23 +1,25 @@
 """
+::
 
-Usage:
-    flight_track_frames.py  <flight_data_path>
+    Usage:
+        flight_track_frames.py  <flight_data_path>
         [<lon_min> <lon_max> <lat_min> <lat_max> <resolution>]
         [--goes_path=<path>]
         [--output_path=<path>]
-    flight_track_frames.py  (-h | --help)
+        flight_track_frames.py  (-h | --help)
 
 Arguments:
     <flight_data_path>  Input flight data
 
-Options:
-    -h --help           Show help
-    --goes_path=<path>
+    Options:
+        -h --help           Show help
+        --goes_path=<path>
         Folder containing downloaded GOES images [default: .]
     --output_path=<path>
         Folder to put the output frames in [default: .]
 
 """
+
 import datetime
 
 import numpy as np

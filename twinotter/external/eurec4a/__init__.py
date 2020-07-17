@@ -1,11 +1,10 @@
-"""
-Projection of the HALO circle adapted from AJDawson's answer on stackoverflow
-https://stackoverflow.com/questions/52105543/drawing-circles-with-cartopy-in-orthographic-projection
+"""Functionality related to the EUREC4A field campaign from 2020
 """
 
 import cartopy.crs as ccrs
 import matplotlib.patches as mpatches
 
+#: A dictionary of standard colours for the various platforms
 colors = dict(
     ATR='DeepOrange',
     Atalante='Fuchsia',
@@ -32,6 +31,18 @@ def _compute_radius(ortho, radius_degrees):
 
 
 def add_halo_circle(ax, color=colors["HALO"], alpha=0.3, **kwargs):
+    """Add the HALO circle to the current
+
+    Projection of the HALO circle adapted from AJDawson's answer on stackoverflow
+    https://stackoverflow.com/questions/52105543/drawing-circles-with-cartopy-in-orthographic-projection
+
+    Args:
+        ax ():
+        color (str): The circle of the colour. Any matplotlib compatible colour. Default
+            is teal (set in the dictionary :data:colors:).
+        alpha (float): The transparancy of the circle (between 0 and 1). Default is 0.3
+        **kwargs: Other keywords to pass to :meth:matplotlib.axes.Axes.add_patch:
+    """
     # Define the projection used to display the circle:
     proj = ccrs.Orthographic(central_longitude=lon, central_latitude=lat)
 

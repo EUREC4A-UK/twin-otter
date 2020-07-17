@@ -9,7 +9,7 @@ import xarray as xr
 from . import plot
 
 
-# Filenames of netCDF files on the AERIS server
+#: Filename pattern of netCDF files on the AERIS server
 nc_filename = "clavrx_OR_ABI-L1b-RadF-M6C01_G16_s" \
               "{year:04d}{day:03d}{hour:02d}{minute:02d}" \
               "{something}_BARBADOS-2KM-FD.level2.nc"
@@ -86,14 +86,23 @@ def _load_image(filename):
 
 
 def load_nc(path, time):
-    """Load the netCDF dataset corresponding to the give time
+    """Load the netCDF dataset corresponding to the given time
+
+    This function finds files matching the AERIS :data:`nc_filename` formatted for the
+    given time
 
     Args:
-        path (str):
-        time (datetime.datetime):
+        path (str): The directory containing GOES netCDF files
+        time (datetime.datetime): The time of the file to load
 
     Returns:
-        xarray.dataset
+        xarray.dataset: The loaded netCDF file with values filtered where the
+            coordinates are NaN
+
+    Raises:
+        FileNotFoundError: If the netCDF is not present
+
+        FileExistsError: If multiple matching netCDF files are found with the same name
     """
     filename = nc_filename.format(
         year=time.year,
