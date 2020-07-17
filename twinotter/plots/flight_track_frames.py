@@ -16,12 +16,22 @@ Options:
 """
 import datetime
 
+import numpy as np
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
+from scipy.interpolate import griddata
+import xarray as xr
 
 from .. import load_flight, plots, util
 from ..util import scripting
 from ..external import eurec4a, goes
+
+resolution = 0.01
+lon_min, lon_max, lat_min, lat_max = -60, -56.4, 12, 14.4
+lon = np.arange(lon_min, lon_max, resolution)
+lat = np.arange(lat_min, lat_max, resolution)
+
+lon_grid, lat_grid = np.meshgrid(lon, lat)
 
 
 def main():
@@ -51,9 +61,26 @@ def generate(flight_data_path, goes_path=".", output_path="."):
         # Load the current satellite image
         goes_data = goes.load_nc(goes_path, sat_image_time)
 
+        # Interpolate the satellite data to a regular grid
+        goes_data_grid = xr.Dataset(
+            coords=dict(
+                latitude=lat,
+                longitude=lon,
+            )
+        )
+        for band in ["refl_0_65um_nom", "refl_0_86um_nom", "refl_0_47um_nom"]:
+            band_grid = griddata(
+                (goes_data["longitude"].values.flatten(),
+                 goes_data["latitude"].values.flatten()),
+                goes_data[band].values.flatten(),
+                (lon_grid, lat_grid),
+            )
+
+            goes_data_grid[band] = (["latitude", "longitude"], band_grid)
+
         sat_image_time += goes.time_resolution
         while time < sat_image_time - goes.time_resolution / 2 and time <= end:
-            fig, ax = make_frame(goes_data)
+            fig, ax = make_frame(goes_data_grid)
 
             overlay_flight_path_segment(ax, dataset, time)
 
