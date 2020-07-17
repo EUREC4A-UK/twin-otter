@@ -1,17 +1,21 @@
 """
 
 Usage:
-    flight_track_frames.py  <flight_data_path> [<goes_path>] [-o <output_path>]
+    flight_track_frames.py  <flight_data_path>
+        [<lon_min> <lon_max> <lat_min> <lat_max> <resolution>]
+        [--goes_path=<path>]
+        [--output_path=<path>]
     flight_track_frames.py  (-h | --help)
 
 Arguments:
     <flight_data_path>  Input flight data
-    <goes_path>         Folder containing downloaded GOES images [Default: "."]
-    <output_path>       Folder to put the output frames in [Default: "."]
 
 Options:
-    -h --help        Show help
-    -o --output_path
+    -h --help           Show help
+    --goes_path=<path>
+        Folder containing downloaded GOES images [default: .]
+    --output_path=<path>
+        Folder to put the output frames in [default: .]
 
 """
 import datetime
@@ -26,21 +30,28 @@ from .. import load_flight, plots, util
 from ..util import scripting
 from ..external import eurec4a, goes
 
-resolution = 0.01
-lon_min, lon_max, lat_min, lat_max = -60, -56.4, 12, 14.4
-lon = np.arange(lon_min, lon_max, resolution)
-lat = np.arange(lat_min, lat_max, resolution)
-
-lon_grid, lat_grid = np.meshgrid(lon, lat)
-
 
 def main():
     scripting.parse_docopt_arguments(generate, __doc__)
     return
 
 
-def generate(flight_data_path, goes_path=".", output_path="."):
+def generate(
+        flight_data_path,
+        lon_min=-60,
+        lon_max=-56.4,
+        lat_min=12,
+        lat_max=14.4,
+        resolution=0.01,
+        goes_path=".",
+        output_path="."
+):
     substep = datetime.timedelta(minutes=1)
+
+    # Setup the grid to interpolate the satellite data on to
+    lon = np.arange(lon_min, lon_max, resolution)
+    lat = np.arange(lat_min, lat_max, resolution)
+    lon_grid, lat_grid = np.meshgrid(lon, lat)
 
     # Load flight data
     dataset = load_flight(flight_data_path)
@@ -62,12 +73,7 @@ def generate(flight_data_path, goes_path=".", output_path="."):
         goes_data = goes.load_nc(goes_path, sat_image_time)
 
         # Interpolate the satellite data to a regular grid
-        goes_data_grid = xr.Dataset(
-            coords=dict(
-                latitude=lat,
-                longitude=lon,
-            )
-        )
+        goes_data_grid = xr.Dataset(coords=dict(latitude=lat, longitude=lon))
         for band in ["refl_0_65um_nom", "refl_0_86um_nom", "refl_0_47um_nom"]:
             band_grid = griddata(
                 (goes_data["longitude"].values.flatten(),
