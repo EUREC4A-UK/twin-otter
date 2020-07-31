@@ -17,7 +17,8 @@ requirements = [
     'cftime',
     'worldview_dl',
     'docopt',
-    'netcdf4'
+    'netcdf4',
+    'pyyaml',
 ]
 
 setup_requirements = [ ]

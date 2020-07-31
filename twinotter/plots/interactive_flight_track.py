@@ -10,17 +10,24 @@ to mark the corresponding points on both figures.
 
 import datetime
 import tkinter
-from tkinter import filedialog
+from tkinter import filedialog, ttk
 
+import yaml
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import SpanSelector
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import cartopy.crs as ccrs
 import pandas as pd
 
 from .. import load_flight
-from . import plot_flight_path
+
+
+yaml.Dumper.ignore_aliases = lambda *args: True
+
+masin_date_format = "{year:04d}{month:02d}{day:02d}"
+masin_time_format = "{hour:02d}:{minute:02d}:{second:02d} UTC"
+
+yaml_file_format = "EUREC4A_TO_Flight-Segments_{year:04d}{month:02d}{day:02d}_{version}.yaml"
 
 
 def main():
@@ -30,105 +37,152 @@ def main():
 
     args = argparser.parse_args()
 
-    start_gui(flight_data_path=args.flight_data_path)
+    ds = load_flight(flight_data_path=args.flight_data_path)
+
+    root = tkinter.Tk()
+    app = FlightPhaseGenerator(ds, root)
+    app.mainloop()
+    root.destroy()
 
     return
 
 
-def start_gui(flight_data_path):
-    ds = load_flight(flight_data_path)
+class FlightPhaseGenerator(tkinter.Frame):
 
-    # Use pandas datetime functionality as xarray makes this difficult
-    time = pd.to_datetime(ds.Time.data)
-    # Flight leg times will be recorded as time since the start of the flight day
-    flight_day_start = pd.to_datetime(ds.Time[0].dt.floor("D").data)
+    def __init__(self, ds, parent, *args, **kwargs):
+        tkinter.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+        self.grid()
 
-    root = tkinter.Tk()
-    root.wm_title("Interactive Flight Track: Flight {}".format(
-        ds.attrs['flight_number']))
+        self.ds = ds
+        self.flight_information = flight_information(ds)
 
-    # Plot the main variable of interest
-    # Change this to whatever variable you want or add additional figures here
-    fig1, ax1a = plt.subplots()
-    ax1a.plot(ds.Time, ds.ROLL_OXTS, linestyle='--', alpha=0.5)
-    ax1a.set_label('Roll Angle')
-    ax1b = ax1a.twinx()
-    ax1b.plot(ds.Time, ds.ALT_OXTS/1000)
-    ax1b.set_ylabel('Altitude (km)')
+        # Use datetime functionality as xarray and pandas makes this difficult
+        self.time = pd.to_datetime(self.ds.Time.values).to_pydatetime()
 
-    # Plot flight path with colours for altitude
-    fig2, ax2 = plt.subplots(subplot_kw=dict(projection=ccrs.PlateCarree()),)
-    ax2.gridlines(draw_labels=True)
-    ax2.coastlines()
-    plot_flight_path(ax=ax2, ds=ds)
+        # Flight leg times will be recorded as time since the start of the flight day
+        self.flight_day_start = pd.to_datetime(ds.Time[0].dt.floor("D").data).to_pydatetime()
 
-    fig1.tight_layout()
-    fig2.tight_layout()
+        entries = {}
+        for n, entry_label in enumerate(self.flight_information):
+            label = ttk.Label(self, text=entry_label)
+            entry = ttk.Entry(self)
 
-    # Save flight leg start and end points
-    leg_info = pd.DataFrame(columns=['Label', 'Start', 'End'])
+            entry.insert(tkinter.END, self.flight_information[entry_label])
 
-    # Add the figures to as TK window
-    figure_area = tkinter.Frame()
-    figure_area.grid(row=0, column=0, columnspan=2)
+            label.grid(row=n, column=0)
+            entry.grid(row=n, column=1)
 
-    canvas = FigureCanvasTkAgg(fig1, master=figure_area)
-    canvas.draw()
-    canvas.get_tk_widget().grid(row=0, column=0)
+            entries[entry_label] = entry
 
-    canvas = FigureCanvasTkAgg(fig2, master=figure_area)
-    canvas.draw()
-    canvas.get_tk_widget().grid(row=0, column=1)
+        self.quit_button = ttk.Button(self, text="Start", command=self.start)
+        self.quit_button.grid(row=n+1, column=0, columnspan=2)
 
-    # Add an area for buttons beneath the figures
-    button_area = tkinter.Canvas(root)
-    button_area.grid(row=1, column=1)
+    def start(self):
+        self.root = tkinter.Tk()
+        self.root.wm_title("Interactive Flight Track: Flight {}".format(
+            self.ds.attrs['flight_number']))
 
-    def _save():
+        # Plot the main variable of interest
+        # Change this to whatever variable you want or add additional figures here
+        fig, ax1 = plt.subplots()
+        ax1.plot(self.ds.Time, self.ds.ROLL_OXTS, linestyle='--', alpha=0.5)
+        ax1.set_label('Roll Angle')
+        ax2 = ax1.twinx()
+        ax2.plot(self.ds.Time, self.ds.ALT_OXTS / 1000)
+        ax2.set_ylabel('Altitude (km)')
+
+        fig.tight_layout()
+
+        # Add the figures to the TK window
+        self.figure_area = tkinter.Frame(self.root)
+        self.figure_area.grid(row=0, column=0, columnspan=2)
+
+        canvas = FigureCanvasTkAgg(fig, master=self.figure_area)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=0, column=0, columnspan=2)
+
+        # Add an area for buttons beneath the figures
+        self.button_area = tkinter.Canvas(self.root)
+        self.button_area.grid(row=1, column=1)
+
+        save_button = tkinter.Button(master=self.button_area, text="Save",
+                                     command=self.save)
+        save_button.grid(row=0, column=0)
+
+        self.quit_button = tkinter.Button(master=self.button_area, text="Quit", command=self.quit)
+        self.quit_button.grid(row=0, column=1)
+
+        # Use an Entry textbox to label the legs
+        self.textbox = tkinter.Entry(master=self.root)
+        self.textbox.grid(row=1, column=0)
+
+        self.selector = SpanSelector(
+            ax2, self.highlight_leg, direction='horizontal')
+
+    def save(self):
+        year = self.flight_day_start.year
+        month = self.flight_day_start.month
+        day = self.flight_day_start.day
         filename = filedialog.asksaveasfilename(
-            initialfile="flight{}-legs.csv".format(ds.attrs['flight_number']))
-        leg_info.to_csv(filename)
-
-    save_button = tkinter.Button(master=button_area, text="Save", command=_save)
-    save_button.grid(row=0, column=0)
-
-    def _quit():
-        root.quit()  # stops mainloop
-        root.destroy()  # this is necessary on Windows to prevent
-        # Fatal Python Error: PyEval_RestoreThread: NULL tstate
-
-    quit_button = tkinter.Button(master=button_area, text="Quit", command=_quit)
-    quit_button.grid(row=0, column=1)
-
-    # Use an Entry textbox to label the legs
-    textbox = tkinter.Entry(master=root)
-    textbox.grid(row=1, column=0)
+            initialfile=yaml_file_format.format(year=year, month=month, day=day, version="0.1"))
+        with open(filename, "w") as f:
+            f.write(yaml.dump(self.flight_information, default_flow_style=False, sort_keys=False))
 
     # Add a span selector to the time-height plot to highlight legs
     # Drag mouse from the start to the end of a leg and save the corresponding
     # times
-    def highlight_leg(start, end):
-        nonlocal leg_info
-
+    def highlight_leg(self, start, end):
         start = _convert_wacky_date_format(start)
         end = _convert_wacky_date_format(end)
 
-        label = textbox.get()
-        idx_start = find_nearest_point(start, time)
-        idx_end = find_nearest_point(end, time)
+        idx_start = find_nearest_point(start, self.time)
+        idx_end = find_nearest_point(end, self.time)
 
-        leg_info = leg_info.append({
-            'Label': label,
-            'Start': str(time[idx_start] - flight_day_start),
-            'End': str(time[idx_end] - flight_day_start),
-        }, ignore_index=True)
+        kinds = self.textbox.get().split(", ")
+        self.flight_information["segments"].append(dict(
+            kinds=kinds,
+            name="",
+            irregularities="",
+            segment_id="",
+            start=self.time[idx_start],
+            end=self.time[idx_end],
+        ))
+
+        self.flight_information["segments"].sort(key=lambda x: x["start"])
 
         return
 
-    selector = SpanSelector(
-        ax1b, highlight_leg, direction='horizontal')
 
-    tkinter.mainloop()
+def flight_information(ds):
+    date = datetime.datetime.strptime(ds.attrs["data_date"], "%Y%m%d").date()
+    start_time = datetime.datetime.strptime(
+        ds.attrs["time_coverage_start"],
+        "%H:%M:%S UTC"
+    ).time()
+    end_time = datetime.datetime.strptime(
+        ds.attrs["time_coverage_end"],
+        "%H:%M:%S UTC"
+    ).time()
+
+    start_time = datetime.datetime.combine(date, start_time)
+    end_time = datetime.datetime.combine(date, end_time)
+
+    flight_number = int(ds.attrs["flight_number"])
+    return dict(
+        name="RF{:02d}".format(flight_number-329),
+        mission="EUREC4A",
+        platform="TO",
+        flight_id="TO-{:04d}".format(flight_number),
+        contacts=[],
+        date=date,
+        flight_report="",
+        takeoff=start_time,
+        landing=end_time,
+        events=[],
+        remarks=ds.attrs["comment"],
+        segments=[],
+    )
 
 
 def find_nearest_point(value, points):
