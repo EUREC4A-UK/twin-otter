@@ -143,8 +143,8 @@ class FlightPhaseGenerator(tkinter.Frame):
         self.flight_information["segments"].append(dict(
             kinds=kinds,
             name="",
-            irregularities="",
-            segment_id="",
+            irregularities=[],
+            segment_id=self.flight_information["flight_id"] + "_",
             start=self.time[idx_start],
             end=self.time[idx_end],
         ))
@@ -180,7 +180,7 @@ def flight_information(ds):
         takeoff=start_time,
         landing=end_time,
         events=[],
-        remarks=ds.attrs["comment"],
+        remarks=[ds.attrs["comment"]],
         segments=[],
     )
 
