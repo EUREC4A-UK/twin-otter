@@ -14,7 +14,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from . import load_flight, load_legs, leg_times_as_datetime
+from . import load_flight, load_segments
 from .plots import vertical_profile
 
 
@@ -34,32 +34,31 @@ def main():
 
 def generate(flight_data_path, legs_file):
     ds = load_flight(flight_data_path)
-    legs = load_legs(legs_file)
-    leg_times_as_datetime(legs, ds.Time[0].dt.floor('D').data)
+    legs = load_segments(legs_file)
 
     path_figures = Path(flight_data_path)/"figures"
+    path_figures.mkdir(exist_ok=True)
 
-    counters = dict(Leg=0, Profile=0)
+    counters = dict(level=0, profile=0)
 
-    for (idx, leg) in tqdm(legs.iterrows(), total=legs.shape[0]):
-        label = leg.Label
+    for leg in tqdm(legs["segments"]):
+        label = leg["kinds"][0]
 
         n = counters[label]
-        if label == 'Leg':
+        if label == 'level':
             fn = '{}{}_{}.png'.format(label, n, 'quicklook')
             plot_func = plot_leg
-        elif label == 'Profile':
+        elif label == 'profile':
             fn = '{}{}_{}.png'.format(label, n, 'skewt')
             plot_func = plot_profile
         else:
             raise NotImplementedError(label)
         counters[label] += 1
 
-        ds_section = ds.sel(Time=slice(leg.Start, leg.End))
+        ds_section = ds.sel(Time=slice(leg["start"], leg["end"]))
         fig = plot_func(ds_section)
-        path_figures.mkdir(exist_ok=True)
-        plt.savefig(str(path_figures/fn))
-        plt.close()
+        fig.savefig(str(path_figures/fn))
+        plt.close(fig)
 
 
 def plot_leg(ds):
@@ -99,14 +98,12 @@ def plot_leg(ds):
 
 
 def plot_profile(dataset):
-    fig, ax = plt.subplots()
-
     p = dataset.PS_AIR
     T = dataset.TAT_ND_R - 273.15
     Td = dataset.TDEW_BUCK - 273.15
     u = dataset.U_OXTS
     v = dataset.V_OXTS
-    vertical_profile.skewt(p, T, Td, u, v)
+    fig = vertical_profile.skewt(p, T, Td, u, v)
 
     return fig
 

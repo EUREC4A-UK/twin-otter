@@ -105,7 +105,7 @@ def skewt(p, T, Td, u, v):
     skew.ax.set_ylim(1000, 600)
     skew.ax.set_xlim(0, 60)
 
-    return
+    return fig
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-import pandas as pd
+import yaml
 import xarray as xr
 
 
@@ -105,38 +105,22 @@ def open_masin_dataset(filename, meta, debug=False):
     return ds
 
 
-def load_legs(filename):
-    """Read a legs file created with twinotter.plots.interactive_flight_track
+def load_segments(filename):
+    """Read a segments yaml file created with twinotter.plots.interactive_flight_track
 
     Args:
         filename (str):
 
     Returns:
-        pandas.DataFrame:
+        dict:
     """
 
     # Load the legs file and convert the times to timedeltas
     # (Saved as the string representation of datetime.timedelta)
-    legs = pd.read_csv(
-        filename, parse_dates=["Start", "End"], date_parser=pd.to_timedelta)
+    with open(filename, "r") as data:
+        segments = yaml.load(data, yaml.CLoader)
 
-    return legs
-
-
-def leg_times_as_datetime(legs, start):
-    """Convert the times of the legs from timedelta to datetime
-
-    By default the legs labelled in twinotter.plots.interactive_flight_track are
-    timedeltas taken from when the files had time in units of seconds since the start of
-    the day. So we just need to add back on the start time (i.e. a datetime.datetime)
-    of the start of the day.
-
-    Args:
-        legs (pandas.DataFrame):
-        start (datetime.datetime:
-    """
-    legs.Start += start
-    legs.End += start
+    return segments
 
 
 def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data_path=None):

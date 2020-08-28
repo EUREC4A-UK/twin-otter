@@ -3,12 +3,12 @@ from pathlib import Path
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-from .. import load_flight, load_legs, leg_times_as_datetime
+from .. import load_flight, load_segments
 
 
 colors = {
-    'Leg': 'cyan',
-    'Profile': 'magenta',
+    'level': 'cyan',
+    'profile': 'magenta',
 }
 
 
@@ -25,8 +25,7 @@ def main():
 
 def generate(flight_data_path, legs_file, show_gui=False):
     ds = load_flight(flight_data_path)
-    legs = load_legs(legs_file)
-    leg_times_as_datetime(legs, ds.Time[0].dt.floor('D').data)
+    legs = load_segments(legs_file)
 
     # Produce the basic time-height plot
     fig, ax1 = plt.subplots()
@@ -37,11 +36,10 @@ def generate(flight_data_path, legs_file, show_gui=False):
     ax2.set_ylabel('Altitude (km)')
 
     # For each leg overlay a coloured line onto the time-height plot
-    for (idx, leg) in tqdm(legs.iterrows(), total=legs.shape[0]):
-        label = leg.Label
+    for leg in tqdm(legs["segments"]):
+        ds_section = ds.sel(Time=slice(leg["start"], leg["end"]))
 
-        ds_section = ds.sel(Time=slice(leg.Start, leg.End))
-
+        label = leg["kinds"][0]
         ax2.plot(ds_section.Time, ds_section.ALT_OXTS / 1000,
                  color=colors[label], linewidth=2, alpha=0.75)
 
