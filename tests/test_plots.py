@@ -53,7 +53,7 @@ def test_vertical_profile_plot(mock_showfig, testdata):
 def test_heights_and_legs_plot(mock_savefig, testdata):
     twinotter.plots.heights_and_legs.generate(
         flight_data_path=testdata['flight_data_path'],
-        legs_file=testdata['flight_legs_data_path']
+        flight_segments_file=testdata['flight_legs_data_path']
     )
     mock_savefig.assert_called_once()
 
@@ -62,7 +62,7 @@ def test_heights_and_legs_plot(mock_savefig, testdata):
 def test_quicklook_plot(mock_savefig, testdata):
     twinotter.quicklook.generate(
         flight_data_path=testdata['flight_data_path'],
-        legs_file=testdata['flight_legs_data_path']
+        flight_segments_file=testdata['flight_legs_data_path']
     )
 
     with open(testdata['flight_legs_data_path']) as fh:
