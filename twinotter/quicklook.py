@@ -1,11 +1,12 @@
 """Quicklook plots for each leg over a single flight.
 
-Use the flight-legs csv produced from :mod:`twinotter.plots.interactive_flight_track`
+Use the flight-segments .yaml produced from
+:mod:`twinotter.plots.interactive_flight_track`
 
 
 Usage::
 
-    $ python -m twinotter.quicklook <flight_data_path> <flight_legs>
+    $ python -m twinotter.quicklook <flight_data_path> <flight_segments>
 
 """
 
@@ -23,26 +24,29 @@ def main():
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument('flight_data_path')
-    argparser.add_argument('legs_file')
+    argparser.add_argument('flight_segments_file')
 
     args = argparser.parse_args()
 
-    generate(flight_data_path=args.flight_data_path, legs_file=args.legs_file)
+    generate(
+        flight_data_path=args.flight_data_path,
+        flight_segments_file=args.legs_file
+    )
 
     return
 
 
-def generate(flight_data_path, legs_file):
+def generate(flight_data_path, flight_segments_file):
     ds = load_flight(flight_data_path)
-    legs = load_segments(legs_file)
+    flight_segments = load_segments(flight_segments_file)
 
     path_figures = Path(flight_data_path)/"figures"
     path_figures.mkdir(exist_ok=True)
 
     counters = dict(level=0, profile=0)
 
-    for leg in tqdm(legs["segments"]):
-        label = leg["kinds"][0]
+    for segments in tqdm(flight_segments["segments"]):
+        label = segments["kinds"][0]
 
         n = counters[label]
         if label == 'level':
@@ -55,7 +59,7 @@ def generate(flight_data_path, legs_file):
             raise NotImplementedError(label)
         counters[label] += 1
 
-        ds_section = ds.sel(Time=slice(leg["start"], leg["end"]))
+        ds_section = ds.sel(Time=slice(segments["start"], segments["end"]))
         fig = plot_func(ds_section)
         fig.savefig(str(path_figures/fn))
         plt.close(fig)

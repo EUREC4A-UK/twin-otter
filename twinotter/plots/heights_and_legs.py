@@ -16,16 +16,16 @@ def main():
     import argparse
     argparser = argparse.ArgumentParser()
     argparser.add_argument('flight_data_path')
-    argparser.add_argument('legs_file')
+    argparser.add_argument('flight_segments_file')
     argparser.add_argument('--show-gui', default=False, action="store_true")
     args = argparser.parse_args()
 
-    generate(args.flight_data_path, args.legs_file, show_gui=args.show_gui)
+    generate(args.flight_data_path, args.flight_segments_file, show_gui=args.show_gui)
 
 
-def generate(flight_data_path, legs_file, show_gui=False):
+def generate(flight_data_path, flight_segments_file, show_gui=False):
     ds = load_flight(flight_data_path)
-    legs = load_segments(legs_file)
+    segments = load_segments(flight_segments_file)
 
     # Produce the basic time-height plot
     fig, ax1 = plt.subplots()
@@ -36,7 +36,7 @@ def generate(flight_data_path, legs_file, show_gui=False):
     ax2.set_ylabel('Altitude (km)')
 
     # For each leg overlay a coloured line onto the time-height plot
-    for leg in tqdm(legs["segments"]):
+    for leg in tqdm(segments["segments"]):
         ds_section = ds.sel(Time=slice(leg["start"], leg["end"]))
 
         label = leg["kinds"][0]
