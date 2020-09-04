@@ -2,24 +2,31 @@
 ::
 
     Usage:
-        flight_track_frames.py  <flight_data_path> [<goes_path>] [-o <output_path>]
+        flight_track_frames.py  <flight_data_path>
+            [<lon_min> <lon_max> <lat_min> <lat_max> <resolution>]
+            [--goes_path=<path>]
+            [--output_path=<path>]
         flight_track_frames.py  (-h | --help)
 
     Arguments:
         <flight_data_path>  Input flight data
-        <goes_path>         Folder containing downloaded GOES images [Default: "."]
-        <output_path>       Folder to put the output frames in [Default: "."]
 
     Options:
-        -h --help        Show help
-        -o --output_path
+        -h --help           Show help
+        --goes_path=<path>
+            Folder containing downloaded GOES images [default: .]
+        --output_path=<path>
+            Folder to put the output frames in [default: .]
 
 """
 
 import datetime
 
+import numpy as np
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
+from scipy.interpolate import griddata
+import xarray as xr
 
 from .. import load_flight, plots, util
 from ..util import scripting
@@ -31,8 +38,22 @@ def main():
     return
 
 
-def generate(flight_data_path, goes_path=".", output_path="."):
+def generate(
+        flight_data_path,
+        lon_min=-60,
+        lon_max=-56.4,
+        lat_min=12,
+        lat_max=14.4,
+        resolution=0.01,
+        goes_path=".",
+        output_path="."
+):
     substep = datetime.timedelta(minutes=1)
+
+    # Setup the grid to interpolate the satellite data on to
+    lon = np.arange(lon_min, lon_max, resolution)
+    lat = np.arange(lat_min, lat_max, resolution)
+    lon_grid, lat_grid = np.meshgrid(lon, lat)
 
     # Load flight data
     dataset = load_flight(flight_data_path)
@@ -53,9 +74,21 @@ def generate(flight_data_path, goes_path=".", output_path="."):
         # Load the current satellite image
         goes_data = goes.load_nc(goes_path, sat_image_time)
 
+        # Interpolate the satellite data to a regular grid
+        goes_data_grid = xr.Dataset(coords=dict(latitude=lat, longitude=lon))
+        for band in ["refl_0_65um_nom", "refl_0_86um_nom", "refl_0_47um_nom"]:
+            band_grid = griddata(
+                (goes_data["longitude"].values.flatten(),
+                 goes_data["latitude"].values.flatten()),
+                goes_data[band].values.flatten(),
+                (lon_grid, lat_grid),
+            )
+
+            goes_data_grid[band] = (["latitude", "longitude"], band_grid)
+
         sat_image_time += goes.time_resolution
         while time < sat_image_time - goes.time_resolution / 2 and time <= end:
-            fig, ax = make_frame(goes_data)
+            fig, ax = make_frame(goes_data_grid)
 
             overlay_flight_path_segment(ax, dataset, time)
 
@@ -75,19 +108,17 @@ def make_frame(goes_data):
     bbox = [-60, -56.4, 12, 14.4]
     domain_aspect = (bbox[3] - bbox[2]) / (bbox[1] - bbox[0])
     fig = plt.figure(figsize=(11., domain_aspect * 10), dpi=96)
-    ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.set_extent(bbox, crs=ccrs.PlateCarree())
+    projection = ccrs.PlateCarree()
+    ax = plt.axes(projection=projection)
 
     plots.add_land_and_sea(ax)
 
     # Plot the current satellite image
-    plt.pcolormesh(
-        goes_data.longitude,
-        goes_data.latitude,
-        goes_data.refl_0_65um_nom,
-        cmap='Greys_r')
+    goes.plot.geocolor(ax, goes_data, projection)
 
     eurec4a.add_halo_circle(ax, color='teal', linewidth=3)
+
+    ax.set_extent(bbox, crs=projection)
 
     return fig, ax
 

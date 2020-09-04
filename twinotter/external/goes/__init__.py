@@ -6,6 +6,8 @@ import parse
 import numpy as np
 import xarray as xr
 
+from . import plot
+
 
 #: Filename pattern of netCDF files on the AERIS server
 nc_filename = "clavrx_OR_ABI-L1b-RadF-M6C01_G16_s" \
