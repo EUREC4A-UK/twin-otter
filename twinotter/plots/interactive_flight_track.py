@@ -85,12 +85,12 @@ class FlightPhaseGenerator(tkinter.Frame):
 
         # Plot the main variable of interest
         # Change this to whatever variable you want or add additional figures here
-        fig, ax1 = plt.subplots()
-        ax1.plot(self.ds.Time, self.ds.ROLL_OXTS, linestyle='--', alpha=0.5)
-        ax1.set_label('Roll Angle')
-        ax2 = ax1.twinx()
-        ax2.plot(self.ds.Time, self.ds.ALT_OXTS / 1000)
-        ax2.set_ylabel('Altitude (km)')
+        fig, self.ax1 = plt.subplots()
+        self.ax1.plot(self.ds.Time, self.ds.ROLL_OXTS, linestyle='--', alpha=0.5)
+        self.ax1.set_label('Roll Angle')
+        self.ax2 = self.ax1.twinx()
+        self.ax2.plot(self.ds.Time, self.ds.ALT_OXTS / 1000)
+        self.ax2.set_ylabel('Altitude (km)')
 
         fig.tight_layout()
 
@@ -118,7 +118,7 @@ class FlightPhaseGenerator(tkinter.Frame):
         self.textbox.grid(row=1, column=0)
 
         self.selector = SpanSelector(
-            ax2, self.highlight_leg, direction='horizontal')
+            self.ax2, self.highlight_leg, direction='horizontal')
 
     def save(self):
         year = self.flight_day_start.year
@@ -133,6 +133,7 @@ class FlightPhaseGenerator(tkinter.Frame):
     # Drag mouse from the start to the end of a leg and save the corresponding
     # times
     def highlight_leg(self, start, end):
+        self.ax2.axvspan(start, end, alpha=0.25, color="r")
         start = _convert_wacky_date_format(start)
         end = _convert_wacky_date_format(end)
 
