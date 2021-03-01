@@ -24,7 +24,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: setup-conda
-      uses: s-weigand/setup-conda@v1.0.2
+      uses: s-weigand/setup-conda@v1.0.5
       with:
           update-conda: true
           python-version: ${{ matrix.python-version }}
