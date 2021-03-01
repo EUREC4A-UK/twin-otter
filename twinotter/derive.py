@@ -54,9 +54,13 @@ def calculate(name, ds):
 def specific_humidity(dataset):
 
     x_h20 = dataset.H2O_LICOR
-    q = constants.water_molecular_weight * x_h20 / (
-            constants.water_molecular_weight * x_h20 +
-            constants.dry_air_molecular_weight*(1-x_h20)
+    q = (
+        constants.water_molecular_weight
+        * x_h20
+        / (
+            constants.water_molecular_weight * x_h20
+            + constants.dry_air_molecular_weight * (1 - x_h20)
+        )
     )
 
     return q
@@ -64,7 +68,7 @@ def specific_humidity(dataset):
 
 def along_track_wind(ds):
     angle = np.arctan2(ds.U_OXTS, ds.V_OXTS)
-    magnitude = np.sqrt(ds.U_OXTS**2 + ds.V_OXTS**2)
+    magnitude = np.sqrt(ds.U_OXTS ** 2 + ds.V_OXTS ** 2)
 
     flight_angle = np.deg2rad(ds.HDG_OXTS)
 
@@ -108,10 +112,7 @@ def _pint_to_xarray(quantity, ds, name):
         coords=ds.coords,
         dims=ds.dims,
         name=name,
-        attrs=dict(
-            long_name=name,
-            units=quantity.units.format_babel(),
-        ),
+        attrs=dict(long_name=name, units=quantity.units.format_babel(),),
         indexes=ds.indexes,
     )
 
@@ -120,30 +121,24 @@ def _pint_to_xarray(quantity, ds, name):
 # them and arguments required as input to those functions
 available = dict(
     air_temperature=dict(
-        function=combine_temperatures,
-        arguments=["TAT_ND_R", "TAT_DI_R"],
+        function=combine_temperatures, arguments=["TAT_ND_R", "TAT_DI_R"],
     ),
-
     air_potential_temperature=dict(
         function=metpy.calc.potential_temperature,
         arguments=["air_pressure", "air_temperature"],
     ),
-
     equivalent_potential_temperature=dict(
         function=metpy.calc.equivalent_potential_temperature,
         arguments=["air_pressure", "air_temperature", "dew_point_temperature"],
     ),
-
     humidity_mixing_ratio=dict(
         function=metpy.calc.mixing_ratio_from_relative_humidity,
         arguments=["air_pressure", "air_temperature", "relative_humidity"],
     ),
-
     relative_humidity=dict(
         function=metpy.calc.relative_humidity_from_dewpoint,
         arguments=["air_temperature", "dew_point_temperature"],
     ),
-
     virtual_potential_temperature=dict(
         function=metpy.calc.virtual_temperature,
         arguments=["air_potential_temperature", "humidity_mixing_ratio"],

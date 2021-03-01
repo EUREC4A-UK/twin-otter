@@ -19,20 +19,24 @@ def _monkey_patch_xr_load():
     # fix here as it breaks cf-convention loading in xarray otherwise
 
     def _fix_var(var):
-        if var.attrs['units'] == 1:
-            var.attrs['units'] = "1"
+        if var.attrs["units"] == 1:
+            var.attrs["units"] = "1"
 
     _decode_variable_old = xr.conventions.decode_cf_variable
+
     def _decode_cf_variable(name, var, *args, **kwargs):
         _fix_var(var)
         return _decode_variable_old(name=name, var=var, *args, **kwargs)
+
     xr.conventions.decode_cf_variable = _decode_cf_variable
 
     _decode_variables_old = xr.conventions.decode_cf_variables
+
     def _decode_cf_variables(variables, *args, **kwargs):
         for var in variables:
             _fix_var(variables[var])
         return _decode_variables_old(variables, *args, **kwargs)
+
     xr.conventions.decode_cf_variables = _decode_cf_variables
 
 
@@ -55,7 +59,7 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
     fn_pattern = MASIN_CORE_FORMAT.format(
         date="*", revision=revision, flight_num="*", freq=frequency
     )
-    files = list((Path(flight_data_path)/"MASIN").glob(fn_pattern))
+    files = list((Path(flight_data_path) / "MASIN").glob(fn_pattern))
 
     meta = {}
     for file in files:
@@ -69,12 +73,10 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
 
     if len(files) > 1:
         if revision == "*":
-            filename = sorted(
-                files, key=lambda v: meta[v]['revision'], reverse=True)[0]
+            filename = sorted(files, key=lambda v: meta[v]["revision"], reverse=True)[0]
         else:
             raise FileExistsError(
-                "More than one MASIN file was found: `{}`".format(
-                    ", ".join(files))
+                "More than one MASIN file was found: `{}`".format(", ".join(files))
             )
     else:
         filename = files[0]
@@ -97,10 +99,10 @@ def open_masin_dataset(filename, meta, debug=False):
     ds = ds.where(~ds.LON_OXTS.isnull(), drop=True)
 
     # plot as function of time
-    ds = ds.swap_dims(dict(data_point='Time'))
+    ds = ds.swap_dims(dict(data_point="Time"))
 
-    ds.attrs['source_file'] = filename
-    ds.attrs['flight_number'] = meta['flight_num']
+    ds.attrs["source_file"] = filename
+    ds.attrs["flight_number"] = meta["flight_num"]
 
     return ds
 
@@ -118,7 +120,8 @@ def load_legs(filename):
     # Load the legs file and convert the times to timedeltas
     # (Saved as the string representation of datetime.timedelta)
     legs = pd.read_csv(
-        filename, parse_dates=["Start", "End"], date_parser=pd.to_timedelta)
+        filename, parse_dates=["Start", "End"], date_parser=pd.to_timedelta
+    )
 
     return legs
 
@@ -139,13 +142,15 @@ def leg_times_as_datetime(legs, start):
     legs.End += start
 
 
-def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data_path=None):
+def generate_file_path(
+    flight_number, date, frequency=1, revision=1, flight_data_path=None
+):
     # Make the filename
     filename = MASIN_CORE_FORMAT.format(
         flight_num=flight_number,
-        date=date.replace('-', ''),
+        date=date.replace("-", ""),
         freq=frequency,
-        revision='{:03d}'.format(revision)
+        revision="{:03d}".format(revision),
     )
 
     # Find all matching files in the obs directory
@@ -155,8 +160,6 @@ def generate_file_path(flight_number, date, frequency=1, revision=1, flight_data
     if len(file_path) == 1:
         return file_path[0]
     elif len(file_path) > 1:
-        raise FileExistsError(
-            'Multiple files found matching {}'.format(filename))
+        raise FileExistsError("Multiple files found matching {}".format(filename))
     else:
-        raise FileNotFoundError(
-            'No files found matching {}'.format(filename))
+        raise FileNotFoundError("No files found matching {}".format(filename))

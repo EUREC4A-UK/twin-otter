@@ -12,11 +12,11 @@ def geocolor(ax, ds, projection):
     maxval = 120
     gamma = 2.2
 
-    red = (ds.refl_0_65um_nom / maxval) ** (1/gamma)
-    green = (ds.refl_0_86um_nom / maxval) ** (1/gamma)
-    blue = (ds.refl_0_47um_nom / maxval) ** (1/gamma)
+    red = (ds.refl_0_65um_nom / maxval) ** (1 / gamma)
+    green = (ds.refl_0_86um_nom / maxval) ** (1 / gamma)
+    blue = (ds.refl_0_47um_nom / maxval) ** (1 / gamma)
 
-    true_green = 0.45*red + 0.1*green + 0.45*blue
+    true_green = 0.45 * red + 0.1 * green + 0.45 * blue
 
     color_array = np.dstack([red, true_green, blue])
 
