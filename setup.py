@@ -10,7 +10,7 @@ requirements = [
     'numpy',
     'matplotlib',
     'pandas',
-    'metpy',
+    'metpy>=1.0',
     'cartopy<=0.17',
     'parse',
     'tqdm',
