@@ -44,14 +44,8 @@ def calculate(name, ds):
 
         result = available[name]["function"](*arguments)
 
-        if type(result) is not xr.DataArray:
-            # Metpy functions return a pint.Quantity so convert to an xarray.DataArray
-            # consistent with the input dataset
-            return _pint_to_xarray(result, ds, name)
-
-        else:
-            _rename_xarray(result, name)
-            return result
+        _rename_xarray(result, name)
+        return result
 
     else:
         raise ValueError("Can not calculate {} from dataset".format(name))
@@ -92,7 +86,9 @@ def combine_temperatures(nondeiced_temperature, deiced_temperature):
 def _rename_xarray(array, name):
     array.rename(name)
     array.attrs["standard_name"] = name
-    del array.attrs["long_name"]
+
+    if "long_name" in array.attrs:
+        del array.attrs["long_name"]
 
 
 def _pint_to_xarray(quantity, ds, name):
@@ -140,7 +136,7 @@ available = dict(
 
     humidity_mixing_ratio=dict(
         function=metpy.calc.mixing_ratio_from_relative_humidity,
-        arguments=["relative_humidity", "air_temperature", "air_pressure"],
+        arguments=["air_pressure", "air_temperature", "relative_humidity"],
     ),
 
     relative_humidity=dict(
