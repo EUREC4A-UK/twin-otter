@@ -13,10 +13,11 @@ def parse_docopt_arguments(function, __doc__):
     """
     # Load in the arguments
     import docopt
+
     arguments = docopt.docopt(__doc__)
 
     # Remove the help argument
-    del arguments['--help']
+    del arguments["--help"]
 
     # Parse the remaining arguments
     parsed_arguments = {}

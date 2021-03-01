@@ -11,8 +11,7 @@ import twinotter.external.goes.download_matching
 
 def test_load_nc(testdata):
     ds = twinotter.external.goes.load_nc(
-        path=testdata["goes_path"],
-        time=testdata['goes_time'],
+        path=testdata["goes_path"], time=testdata["goes_time"],
     )
 
     assert len(ds) == 93
@@ -25,7 +24,7 @@ def test_download_matching(mock_download_image, testdata):
     mock_download_image.assert_any_call(
         fn="GOES-East_ABI_Band2_Red_Visible_1km_2020-01-24_11-10.tiff",
         time=datetime.datetime(2020, 1, 24, 11, 10, tzinfo=pytz.utc),
-        bbox=[10., -60., 15., -50.],
+        bbox=[10.0, -60.0, 15.0, -50.0],
         layers=["GOES-East_ABI_Band2_Red_Visible_1km", "Reference_Labels"],
         image_format="tiff",
         resolution=0.01,
@@ -34,7 +33,7 @@ def test_download_matching(mock_download_image, testdata):
     mock_download_image.assert_any_call(
         fn="GOES-East_ABI_Band2_Red_Visible_1km_2020-01-24_14-00.tiff",
         time=datetime.datetime(2020, 1, 24, 14, tzinfo=pytz.utc),
-        bbox=[10., -60., 15., -50.],
+        bbox=[10.0, -60.0, 15.0, -50.0],
         layers=["GOES-East_ABI_Band2_Red_Visible_1km", "Reference_Labels"],
         image_format="tiff",
         resolution=0.01,

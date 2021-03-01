@@ -7,7 +7,9 @@ import datetime
 import requests
 import pytest
 
-TESTDATA_URL = "http://gws-access.ceda.ac.uk/public/eurec4auk/testdata/twinotter.testdata.tar.gz"
+TESTDATA_URL = (
+    "http://gws-access.ceda.ac.uk/public/eurec4auk/testdata/twinotter.testdata.tar.gz"
+)
 
 GOES_TESTDATA_URL = (
     "https://observations.ipsl.fr/aeris/eurec4a-data/"
@@ -21,22 +23,20 @@ testdata_goes_dir = testdata_dir / "goes"
 
 
 def download_testdata():
-    fhtar = tempfile.NamedTemporaryFile(
-        delete=False, suffix='.tar.gz'
-    )
+    fhtar = tempfile.NamedTemporaryFile(delete=False, suffix=".tar.gz")
 
     r = requests.get(TESTDATA_URL)
     fhtar.write(r.content)
     fhtar.close()
 
-    tarfile.open(fhtar.name, 'r:gz').extractall(testdata_dir)
+    tarfile.open(fhtar.name, "r:gz").extractall(testdata_dir)
 
     return
 
 
 def download_goes_testdata():
     with requests.get(GOES_TESTDATA_URL, stream=True) as r:
-        with open(testdata_goes_dir / GOES_TESTDATA_URL.split("/")[-1], 'wb') as f:
+        with open(testdata_goes_dir / GOES_TESTDATA_URL.split("/")[-1], "wb") as f:
             shutil.copyfileobj(r.raw, f)
 
 
@@ -57,26 +57,24 @@ def testdata(scope="session"):
     shutil.copytree(testdata_dir / "obs", p_root / "obs")
     shutil.copytree(testdata_dir / "goes", p_root / "goes")
 
-    flight_data_path = p_root/"obs"/"flight330"
+    flight_data_path = p_root / "obs" / "flight330"
 
     # Create an duplicate older MASIN file (to be avoided in tests)
-    (flight_data_path/"MASIN"/"core_masin_20200124_r001_flight330_1hz.nc").symlink_to(
-        flight_data_path/"MASIN"/"core_masin_20200124_r004_flight330_1hz.nc")
+    (
+        flight_data_path / "MASIN" / "core_masin_20200124_r001_flight330_1hz.nc"
+    ).symlink_to(
+        flight_data_path / "MASIN" / "core_masin_20200124_r004_flight330_1hz.nc"
+    )
 
     yield dict(
-        path=str(p_root/"obs"),
+        path=str(p_root / "obs"),
         flight_data_path=str(flight_data_path),
-        flight_data_file=str(flight_data_path / "MASIN" /
-                             "core_masin_20200124_r004_flight330_1hz.nc"),
-        flight_legs_data_path=str(flight_data_path/"flight330-legs.csv"),
-        goes_path=str(p_root/"goes"),
-        goes_time=datetime.datetime(
-            year=2020,
-            month=1,
-            day=24,
-            hour=14,
-            minute=0,
+        flight_data_file=str(
+            flight_data_path / "MASIN" / "core_masin_20200124_r004_flight330_1hz.nc"
         ),
+        flight_legs_data_path=str(flight_data_path / "flight330-legs.csv"),
+        goes_path=str(p_root / "goes"),
+        goes_time=datetime.datetime(year=2020, month=1, day=24, hour=14, minute=0,),
     )
 
 

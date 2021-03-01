@@ -22,9 +22,16 @@ def test_calculate_nonsense(testdata):
         twinotter.derive.calculate("nonsense", ds)
 
 
-@pytest.mark.parametrize("variable,function,arguments", [
-    ("air_temperature", twinotter.derive.combine_temperatures, ["TAT_ND_R", "TAT_DI_R"])
-])
+@pytest.mark.parametrize(
+    "variable,function,arguments",
+    [
+        (
+            "air_temperature",
+            twinotter.derive.combine_temperatures,
+            ["TAT_ND_R", "TAT_DI_R"],
+        )
+    ],
+)
 def test_calculate_equivalent(testdata, variable, function, arguments):
     # Check that "calculate" returns an equivalent variable to calling the specific
     # function Currently only setup for "first-order" functions. i.e. functions that

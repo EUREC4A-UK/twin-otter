@@ -28,10 +28,11 @@ def main():
 
 
 def get_images(
-        flight_data_path,
-        layer=goes.default_layer,
-        image_resolution=goes.default_spatial_resolution,
-        bbox=goes.default_bbox):
+    flight_data_path,
+    layer=goes.default_layer,
+    image_resolution=goes.default_spatial_resolution,
+    bbox=goes.default_bbox,
+):
     """Download all GOES images during the time of the specified flight
 
     Args:
@@ -45,8 +46,8 @@ def get_images(
     date = summary.extract_date(dataset)
     date = date.astimezone(pytz.utc)
 
-    start = date + summary.extract_time(dataset, 'time_coverage_start')
-    end = date + summary.extract_time(dataset, 'time_coverage_end')
+    start = date + summary.extract_time(dataset, "time_coverage_start")
+    end = date + summary.extract_time(dataset, "time_coverage_end")
 
     start = util.round_datetime(start, goes.time_resolution)
     end = util.round_datetime(end, goes.time_resolution) + goes.time_resolution
@@ -61,7 +62,7 @@ def get_images(
             fn=filename,
             time=time,
             bbox=bbox,
-            layers=[layer, 'Reference_Labels'],
+            layers=[layer, "Reference_Labels"],
             image_format="tiff",
             resolution=image_resolution,
         )

@@ -17,12 +17,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'twinotter'
-copyright = '2020, eurec4a'
-author = 'eurec4a'
+project = "twinotter"
+copyright = "2020, eurec4a"
+author = "eurec4a"
 
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = "0.1"
 
 
 # -- General configuration ---------------------------------------------------
@@ -31,26 +31,26 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.coverage',
-    'm2r',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.coverage",
+    "m2r",
 ]
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'numpy': ('https://docs.scipy.org/doc/numpy', None),
-    'matplotlib': ('https://matplotlib.org', None),
-    'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
-    'cartopy': ('https://scitools.org.uk/cartopy/docs/latest', None)
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://docs.scipy.org/doc/numpy", None),
+    "matplotlib": ("https://matplotlib.org", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
+    "cartopy": ("https://scitools.org.uk/cartopy/docs/latest", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -63,19 +63,19 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
-    'logo_only': False,
-    'display_version': True,
-    'prev_next_buttons_location': 'both',
-    'style_external_links': False,
+    "logo_only": False,
+    "display_version": True,
+    "prev_next_buttons_location": "both",
+    "style_external_links": False,
     # Toc options
-    'collapse_navigation': False,
-    'sticky_navigation': True,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': False
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+    "navigation_depth": 4,
+    "includehidden": True,
+    "titles_only": False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
