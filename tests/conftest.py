@@ -17,6 +17,7 @@ GOES_TESTDATA_URL = (
 
 # A testdata folder in this directory
 testdata_dir = Path(__file__).parent / "testdata"
+testdata_twinotter_dir = testdata_dir / "obs"
 testdata_goes_dir = testdata_dir / "goes"
 
 
@@ -43,8 +44,8 @@ def download_goes_testdata():
 @pytest.fixture
 def testdata(scope="session"):
     # Download testdata if it is not there yet
-    if not testdata_dir.exists():
-        testdata_dir.mkdir()
+    if not testdata_twinotter_dir.exists():
+        testdata_twinotter_dir.mkdir()
         download_testdata()
 
     if not testdata_goes_dir.exists():

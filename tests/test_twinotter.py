@@ -32,3 +32,7 @@ def test_load_flight_empty_fails(testdata_empty):
             flight_data_path=testdata_empty["flight_data_path"]
         )
     return
+
+
+def test_load_flight_legs(testdata):
+    flight_legs = twinotter.load_segments()
