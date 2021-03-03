@@ -12,7 +12,11 @@ Usage::
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import scipy.constants
+import xarray as xr
 from tqdm import tqdm
+import metpy.calc
+from metpy.units import units
 
 from . import load_flight, load_legs, leg_times_as_datetime, derive
 from .plots import vertical_profile
@@ -57,11 +61,18 @@ def generate(flight_data_path, legs_file):
         ds_section = ds.sel(Time=slice(leg.Start, leg.End))
         figures = plot_func(ds_section)
 
-        for fig, figname in figures:
-            fn = "{}{}_{}.png".format(label, n, figname)
-            print(str(path_figures / fn))
-            fig.savefig(str(path_figures / fn))
-            plt.close(fig)
+        savefigs(figures, ds.attrs["flight_number"], label.lower(), n)
+
+    # Make a combined plot of all profiles
+    profiles = legs.loc[legs.Label == "Profile"]
+    ds_profiles = []
+    for idx, profile in profiles.iterrows():
+        ds_sub = ds.sel(Time=slice(profile.Start, profile.End))
+        ds_profiles.append(ds_sub)
+
+    ds_profiles = xr.concat(ds_profiles, dim="Time")
+    figures = plot_profile(ds_profiles)
+    savefigs(figures, ds.attrs["flight_number"], "profile", "_combined")
 
 
 def plot_leg(ds):
@@ -116,13 +127,33 @@ def plot_leg(ds):
 
 def plot_profile(dataset):
     p = dataset.PS_AIR
-    T = dataset.TAT_ND_R - 273.15
-    Td = dataset.TDEW_BUCK - 273.15
+    T = dataset.TAT_ND_R
+    Td = dataset.TDEW_BUCK
     u = dataset.U_OXTS
     v = dataset.V_OXTS
-    fig = vertical_profile.skewt(p, T, Td, u, v)
+    fig1 = vertical_profile.skewt(
+        p, T - scipy.constants.zero_Celsius, Td - scipy.constants.zero_Celsius, u, v
+    )
 
-    return [(fig, "skewt")]
+    theta = metpy.calc.potential_temperature(p * units("hPa"), T * units("K"))
+    fig2 = plt.figure()
+    plt.plot(theta, dataset.ALT_OXTS, "k.")
+    plt.xlim(295, 320)
+    plt.ylim(0, 4000)
+    plt.xlabel("Potential Temperature (K)")
+    plt.ylabel("Altitude (m)")
+    plt.title("Flight {}".format(dataset.attrs["flight_number"]))
+
+    rh = metpy.calc.relative_humidity_from_dewpoint(T * units("K"), Td * units("K"))
+    fig3 = plt.figure()
+    plt.plot(rh, dataset.ALT_OXTS, "b.")
+    plt.xlim(0, 1)
+    plt.ylim(0, 4000)
+    plt.xlabel("Relative Humidity")
+    plt.ylabel("Altitude (m)")
+    plt.title("Flight {}".format(dataset.attrs["flight_number"]))
+
+    return [(fig1, "skewt"), (fig2, "theta_0-4km"), (fig3, "rh_0-4km")]
 
 
 def add_labels(ax, ylabel):
@@ -130,6 +161,14 @@ def add_labels(ax, ylabel):
     ax.set_ylabel(ylabel)
 
     return
+
+
+def savefigs(figures, flight_number, label, n):
+    for fig, figname in figures:
+        fn = "flight{}_{}{}_{}.png".format(flight_number, label, n, figname)
+        print(fn)
+        fig.savefig(fn)
+        plt.close(fig)
 
 
 if __name__ == "__main__":

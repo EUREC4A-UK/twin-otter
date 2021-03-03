@@ -67,13 +67,12 @@ def test_quicklook_plot(mock_savefig, testdata):
         n_legs = len(file_content.split("Leg")) - 1
         n_profiles = len(file_content.split("Profile")) - 1
 
-    figures_path = Path(testdata["flight_data_path"]) / "figures"
     for n in range(n_legs):
-        fn_fig = str(figures_path / "Leg{}_quicklook.png".format(n))
+        fn_fig = "flight330_leg{}_quicklook.png".format(n)
         mock_savefig.assert_any_call(fn_fig)
 
     for n in range(n_profiles):
-        fn_fig = str(figures_path / "Profile{}_skewt.png".format(n))
+        fn_fig = "flight330_profile{}_skewt.png".format(n)
         mock_savefig.assert_any_call(fn_fig)
 
 
