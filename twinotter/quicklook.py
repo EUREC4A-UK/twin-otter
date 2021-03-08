@@ -18,7 +18,7 @@ from tqdm import tqdm
 import metpy.calc
 from metpy.units import units
 
-from . import load_flight, load_legs, leg_times_as_datetime, derive
+from . import load_flight, load_legs, leg_times_as_datetime, derive, extract_legs
 from .plots import vertical_profile
 
 
@@ -41,37 +41,18 @@ def generate(flight_data_path, legs_file):
     legs = load_legs(legs_file)
     leg_times_as_datetime(legs, ds.Time[0].dt.floor("D").data)
 
-    path_figures = Path(flight_data_path) / "figures"
-    path_figures.mkdir(exist_ok=True)
+    leg_counts = legs["Label"].value_counts()
 
-    counters = dict(Leg=0, Profile=0)
+    plot_legs()
 
-    for (idx, leg) in tqdm(legs.iterrows(), total=legs.shape[0]):
-        label = leg.Label
-
-        n = counters[label]
-        if label == "Leg":
-            plot_func = plot_leg
-        elif label == "Profile":
-            plot_func = plot_profile
-        else:
-            raise NotImplementedError(label)
-        counters[label] += 1
-
-        ds_section = ds.sel(Time=slice(leg.Start, leg.End))
-        figures = plot_func(ds_section)
-
-        savefigs(figures, ds.attrs["flight_number"], label.lower(), n)
+    for n in tqdm(range(leg_counts["Leg"])):
+        ds_section = extract_legs(ds, legs, "Leg", n)
+        figures = plot_leg(ds_section)
+        savefigs(figures, ds.attrs["flight_number"], "Leg", n)
 
     # Make a combined plot of all profiles
-    profiles = legs.loc[legs.Label == "Profile"]
-    ds_profiles = []
-    for idx, profile in profiles.iterrows():
-        ds_sub = ds.sel(Time=slice(profile.Start, profile.End))
-        ds_profiles.append(ds_sub)
-
-    ds_profiles = xr.concat(ds_profiles, dim="Time")
-    figures = plot_profile(ds_profiles)
+    profiles = extract_legs(ds, legs, "Profile")
+    figures = plot_profile(profiles)
     savefigs(figures, ds.attrs["flight_number"], "profile", "_combined")
 
 
