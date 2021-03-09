@@ -13,8 +13,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import scipy.constants
-import xarray as xr
-from tqdm import tqdm
 import metpy.calc
 from metpy.units import units
 
@@ -41,19 +39,20 @@ def generate(flight_data_path, legs_file):
     legs = load_legs(legs_file)
     leg_times_as_datetime(legs, ds.Time[0].dt.floor("D").data)
 
-    leg_counts = legs["Label"].value_counts()
-
-    plot_legs()
-
-    for n in tqdm(range(leg_counts["Leg"])):
-        ds_section = extract_legs(ds, legs, "Leg", n)
-        figures = plot_leg(ds_section)
-        savefigs(figures, ds.attrs["flight_number"], "Leg", n)
+    plot_individual_phases(ds, legs, "Leg", plot_leg)
+    plot_individual_phases(ds, legs, "Profile", plot_profile)
 
     # Make a combined plot of all profiles
     profiles = extract_legs(ds, legs, "Profile")
     figures = plot_profile(profiles)
     savefigs(figures, ds.attrs["flight_number"], "profile", "_combined")
+
+
+def plot_individual_phases(ds, legs, leg_type, plot_func):
+    for n in range(legs["Label"].value_counts()[leg_type]):
+        ds_section = extract_legs(ds, legs, leg_type, n)
+        figures = plot_func(ds_section)
+        savefigs(figures, ds.attrs["flight_number"], leg_type, n)
 
 
 def plot_leg(ds):
