@@ -62,34 +62,34 @@ def plot_leg(ds):
     fig, axes = plt.subplots(nrows=5, ncols=1, sharex="all", figsize=[16, 15])
 
     # Temperature and Dewpoint
-    ds.TAT_ND_R.plot(ax=axes[0], label=r"True")
-    ds.TDEW_BUCK.plot(ax=axes[0], label=r"Dewpoint")
-    add_labels(axes[0], "Temperature (K)")
+    axes[0].plot(ds.TAT_ND_R, label=r"True")
+    axes[0].plot(ds.TDEW_BUCK, label=r"Dewpoint")
+    axes[0].set_ylabel("Temperature (K)")
     axes[0].legend()
 
     # Velocities
-    ds.U_OXTS.plot(ax=axes[1], label=r"Zonal")
-    ds.V_OXTS.plot(ax=axes[1], label=r"Meridional")
-    add_labels(axes[1], "Velocity (m s$^{-1}$)")
+    axes[1].plot(ds.U_OXTS, label=r"Zonal")
+    axes[1].plot(ds.V_OXTS, label=r"Meridional")
+    axes[1].set_ylabel("Velocity (m s$^{-1}$)")
     axes[1].legend()
 
-    ds.W_OXTS.plot(ax=axes[2])
-    add_labels(axes[2], "Vertical Velocity (m s$^{-1}$)")
+    axes[2].plot(ds.W_OXTS, label=r"Vertical")
+    axes[2].set_ylabel("Vertical Velocity (m s$^{-1}$)")
 
     # Shortwave radiation
-    ds.SW_DN_C.plot(ax=axes[3], label=r"SW Downwelling")
-    ds.SW_UP_C.plot(ax=axes[3], label=r"SW Upwelling")
-    axes[3].legend()
+    axes[3].plot(ds.SW_DN_C, label=r"SW Downwelling")
+    axes[3].plot(ds.SW_UP_C, label=r"SW Upwelling")
 
     # Longwave radiation
-    ds.LW_DN_C.plot(ax=axes[3], label=r"LW Downwelling")
-    ds.LW_UP_C.plot(ax=axes[3], label=r"LW Upwelling")
-    add_labels(axes[3], "Irradiance (W m$^{-2}$)")
+    axes[3].plot(ds.LW_DN_C, label=r"LW Downwelling")
+    axes[3].plot(ds.LW_UP_C, label=r"LW Upwelling")
+
+    axes[3].set_ylabel("Irradiance (W m$^{-2}$)")
     axes[3].legend()
 
     # CPC Concentration
-    ds.CPC_CONC.plot(ax=axes[4])
-    add_labels(axes[4], "CPC Concentration (m$^{-3}$)")
+    axes[4].plot(ds.CPC_CONC)
+    axes[4].set_ylabel("CPC Concentration (m$^{-3}$)")
 
     figures.append([fig, "quicklook"])
 
@@ -97,9 +97,9 @@ def plot_leg(ds):
     try:
         fig, axes = plt.subplots(nrows=2, ncols=1, sharex="all", figsize=[16, 15])
         # LICOR data
-        ds.CO2_LICOR.plot(ax=axes[0], label=r"CO$_2$ LICOR")
-        ds.H2O_LICOR.plot(ax=axes[0], label=r"H$_2$O LICOR")
-        add_labels(axes[0], "Mole Fraction")
+        axes[0].plot(ds.CO2_LICOR, label=r"CO$_2$ LICOR")
+        axes[0].plot(ds.H2O_LICOR, label=r"H$_2$O LICOR")
+        axes[0].set_ylabel("Mole Fraction")
         axes[0].legend()
 
         axes[1].plot(ds.Time, derive.specific_humidity(ds))
@@ -152,13 +152,6 @@ def plot_profile(dataset):
     plt.title("Flight {}".format(dataset.attrs["flight_number"]))
 
     return [(fig1, "skewt"), (fig2, "theta_0-4km"), (fig3, "rh_0-4km")]
-
-
-def add_labels(ax, ylabel):
-    ax.set_xlabel("")
-    ax.set_ylabel(ylabel)
-
-    return
 
 
 def savefigs(figures, flight_number, label, n):
