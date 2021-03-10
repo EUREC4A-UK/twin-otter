@@ -11,6 +11,7 @@ Usage::
 
 from pathlib import Path
 
+import numpy as np
 import matplotlib.pyplot as plt
 import scipy.constants
 import metpy.calc
@@ -56,53 +57,70 @@ def plot_individual_phases(ds, legs, leg_type, plot_func):
 
 
 def plot_leg(ds):
-    fig1, axes1 = plt.subplots(nrows=5, ncols=1, sharex="all", figsize=[16, 15])
+    figures = []
+
+    fig, axes = plt.subplots(nrows=5, ncols=1, sharex="all", figsize=[16, 15])
 
     # Temperature and Dewpoint
-    ds.TAT_ND_R.plot(ax=axes1[0], label=r"True")
-    ds.TDEW_BUCK.plot(ax=axes1[0], label=r"Dewpoint")
-    add_labels(axes1[0], "Temperature (K)")
-    axes1[0].legend()
+    ds.TAT_ND_R.plot(ax=axes[0], label=r"True")
+    ds.TDEW_BUCK.plot(ax=axes[0], label=r"Dewpoint")
+    add_labels(axes[0], "Temperature (K)")
+    axes[0].legend()
 
     # Velocities
-    ds.U_OXTS.plot(ax=axes1[1], label=r"Zonal")
-    ds.V_OXTS.plot(ax=axes1[1], label=r"Meridional")
-    add_labels(axes1[1], "Velocity (m s$^{-1}$)")
-    axes1[1].legend()
+    ds.U_OXTS.plot(ax=axes[1], label=r"Zonal")
+    ds.V_OXTS.plot(ax=axes[1], label=r"Meridional")
+    add_labels(axes[1], "Velocity (m s$^{-1}$)")
+    axes[1].legend()
 
-    ds.W_OXTS.plot(ax=axes1[2])
-    add_labels(axes1[2], "Vertical Velocity (m s$^{-1}$)")
+    ds.W_OXTS.plot(ax=axes[2])
+    add_labels(axes[2], "Vertical Velocity (m s$^{-1}$)")
 
     # Shortwave radiation
-    ds.SW_DN_C.plot(ax=axes1[3], label=r"SW Downwelling")
-    ds.SW_UP_C.plot(ax=axes1[3], label=r"SW Upwelling")
-    axes1[3].legend()
+    ds.SW_DN_C.plot(ax=axes[3], label=r"SW Downwelling")
+    ds.SW_UP_C.plot(ax=axes[3], label=r"SW Upwelling")
+    axes[3].legend()
 
     # Longwave radiation
-    ds.LW_DN_C.plot(ax=axes1[3], label=r"LW Downwelling")
-    ds.LW_UP_C.plot(ax=axes1[3], label=r"LW Upwelling")
-    add_labels(axes1[3], "Irradiance (W m$^{-2}$)")
-    axes1[3].legend()
+    ds.LW_DN_C.plot(ax=axes[3], label=r"LW Downwelling")
+    ds.LW_UP_C.plot(ax=axes[3], label=r"LW Upwelling")
+    add_labels(axes[3], "Irradiance (W m$^{-2}$)")
+    axes[3].legend()
 
     # CPC Concentration
-    ds.CPC_CONC.plot(ax=axes1[4])
-    add_labels(axes1[4], "CPC Concentration (m$^{-3}$)")
+    ds.CPC_CONC.plot(ax=axes[4])
+    add_labels(axes[4], "CPC Concentration (m$^{-3}$)")
+
+    figures.append([fig, "quicklook"])
 
     # Not all flights have LICOR data
     try:
-        fig2, axes2 = plt.subplots(nrows=2, ncols=1, sharex="all", figsize=[16, 15])
+        fig, axes = plt.subplots(nrows=2, ncols=1, sharex="all", figsize=[16, 15])
         # LICOR data
-        ds.CO2_LICOR.plot(ax=axes2[0], label=r"CO$_2$ LICOR")
-        ds.H2O_LICOR.plot(ax=axes2[0], label=r"H$_2$O LICOR")
-        add_labels(axes2[0], "Mole Fraction")
-        axes2[0].legend()
+        ds.CO2_LICOR.plot(ax=axes[0], label=r"CO$_2$ LICOR")
+        ds.H2O_LICOR.plot(ax=axes[0], label=r"H$_2$O LICOR")
+        add_labels(axes[0], "Mole Fraction")
+        axes[0].legend()
 
-        axes2[1].plot(ds.Time, derive.specific_humidity(ds))
-        add_labels(axes2[1], "Specific Humidity")
+        axes[1].plot(ds.Time, derive.specific_humidity(ds))
+        add_labels(axes[1], "Specific Humidity")
 
-        return [(fig1, "quicklook"), (fig2, "quicklook_LICOR")]
+        figures.append([fig, "quicklook_LICOR"])
     except AttributeError:
-        return [(fig1, "quicklook")]
+        pass
+
+    fig, ax = plt.subplots(figsize=[8, 5])
+
+    ax.scatter(
+        derive.calculate("equivalent_potential_temperature", ds),
+        metpy.calc.specific_humidity_from_dewpoint(ds.PS_AIR, ds.TDEW_BUCK),
+        alpha=0.1,
+    )
+    ax.set_xlabel(r"$\theta_e$")
+    ax.set_ylabel("Specific Humidity")
+    figures.append([fig, "paluch"])
+
+    return figures
 
 
 def plot_profile(dataset):
