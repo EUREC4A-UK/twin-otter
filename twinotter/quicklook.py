@@ -40,6 +40,10 @@ def generate(flight_data_path, legs_file):
     legs = load_legs(legs_file)
     leg_times_as_datetime(legs, ds.Time[0].dt.floor("D").data)
 
+    # Quicklook plots for the full flight
+    figures = plot_leg(ds)
+    savefigs(figures, ds.attrs["flight_number"], "", "")
+
     plot_individual_phases(ds, legs, "Leg", plot_leg)
     plot_individual_phases(ds, legs, "Profile", plot_profile)
 
