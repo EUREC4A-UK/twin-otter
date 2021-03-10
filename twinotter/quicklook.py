@@ -62,33 +62,33 @@ def plot_leg(ds):
     fig, axes = plt.subplots(nrows=5, ncols=1, sharex="all", figsize=[16, 15])
 
     # Temperature and Dewpoint
-    axes[0].plot(ds.TAT_ND_R, label=r"True")
-    axes[0].plot(ds.TDEW_BUCK, label=r"Dewpoint")
+    axes[0].plot(ds.Time, ds.TAT_ND_R, label=r"True")
+    axes[0].plot(ds.Time, ds.TDEW_BUCK, label=r"Dewpoint")
     axes[0].set_ylabel("Temperature (K)")
     axes[0].legend()
 
     # Velocities
-    axes[1].plot(ds.U_OXTS, label=r"Zonal")
-    axes[1].plot(ds.V_OXTS, label=r"Meridional")
+    axes[1].plot(ds.Time, ds.U_OXTS, label=r"Zonal")
+    axes[1].plot(ds.Time, ds.V_OXTS, label=r"Meridional")
     axes[1].set_ylabel("Velocity (m s$^{-1}$)")
     axes[1].legend()
 
-    axes[2].plot(ds.W_OXTS, label=r"Vertical")
+    axes[2].plot(ds.Time, ds.W_OXTS, label=r"Vertical")
     axes[2].set_ylabel("Vertical Velocity (m s$^{-1}$)")
 
     # Shortwave radiation
-    axes[3].plot(ds.SW_DN_C, label=r"SW Downwelling")
-    axes[3].plot(ds.SW_UP_C, label=r"SW Upwelling")
+    axes[3].plot(ds.Time, ds.SW_DN_C, label=r"SW Downwelling")
+    axes[3].plot(ds.Time, ds.SW_UP_C, label=r"SW Upwelling")
 
     # Longwave radiation
-    axes[3].plot(ds.LW_DN_C, label=r"LW Downwelling")
-    axes[3].plot(ds.LW_UP_C, label=r"LW Upwelling")
+    axes[3].plot(ds.Time, ds.LW_DN_C, label=r"LW Downwelling")
+    axes[3].plot(ds.Time, ds.LW_UP_C, label=r"LW Upwelling")
 
     axes[3].set_ylabel("Irradiance (W m$^{-2}$)")
     axes[3].legend()
 
     # CPC Concentration
-    axes[4].plot(ds.CPC_CONC)
+    axes[4].plot(ds.Time, ds.CPC_CONC)
     axes[4].set_ylabel("CPC Concentration (m$^{-3}$)")
 
     figures.append([fig, "quicklook"])
@@ -97,8 +97,8 @@ def plot_leg(ds):
     try:
         fig, axes = plt.subplots(nrows=2, ncols=1, sharex="all", figsize=[16, 15])
         # LICOR data
-        axes[0].plot(ds.CO2_LICOR, label=r"CO$_2$ LICOR")
-        axes[0].plot(ds.H2O_LICOR, label=r"H$_2$O LICOR")
+        axes[0].plot(ds.Time, ds.CO2_LICOR, label=r"CO$_2$ LICOR")
+        axes[0].plot(ds.Time, ds.H2O_LICOR, label=r"H$_2$O LICOR")
         axes[0].set_ylabel("Mole Fraction")
         axes[0].legend()
 
