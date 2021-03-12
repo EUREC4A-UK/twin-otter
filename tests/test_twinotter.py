@@ -5,11 +5,14 @@ import numpy as np
 import twinotter
 
 
-@pytest.mark.parametrize("load_from,revision", [
-    ("flight_data_path", "most_recent"),
-    ("flight_data_path", 4),
-    ("flight_data_file", "most_recent"),
-])
+@pytest.mark.parametrize(
+    "load_from,revision",
+    [
+        ("flight_data_path", "most_recent"),
+        ("flight_data_path", 4),
+        ("flight_data_file", "most_recent"),
+    ],
+)
 def test_load_flight(testdata, load_from, revision):
     ds = twinotter.load_flight(flight_data_path=testdata[load_from], revision=revision)
 
@@ -28,9 +31,7 @@ def test_load_flight(testdata, load_from, revision):
 
 def test_load_flight_empty_fails(testdata_empty):
     with pytest.raises(FileNotFoundError):
-        twinotter.load_flight(
-            flight_data_path=testdata_empty["flight_data_path"]
-        )
+        twinotter.load_flight(flight_data_path=testdata_empty["flight_data_path"])
     return
 
 

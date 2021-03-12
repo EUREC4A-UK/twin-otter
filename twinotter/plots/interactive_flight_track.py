@@ -20,6 +20,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 
 from .. import load_flight
+from . import flight_path
 
 
 yaml.Dumper.ignore_aliases = lambda *args: True
@@ -32,8 +33,9 @@ yaml_file_format = "EUREC4A_TO_Flight-Segments_{year:04d}{month:02d}{day:02d}_{v
 
 def main():
     import argparse
+
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('flight_data_path')
+    argparser.add_argument("flight_data_path")
 
     args = argparser.parse_args()
 
@@ -81,7 +83,8 @@ class FlightPhaseGenerator(tkinter.Frame):
     def start(self):
         self.root = tkinter.Tk()
         self.root.wm_title("Interactive Flight Track: Flight {}".format(
-            self.ds.attrs['flight_number']))
+            self.ds.attrs["flight_number"])
+    )
 
         # Plot the main variable of interest
         # Change this to whatever variable you want or add additional figures here
@@ -187,10 +190,12 @@ def flight_information(ds):
 
 
 def find_nearest_point(value, points):
-    return int(np.argmin(np.abs(value-points)))
+    return int(np.argmin(np.abs(value - points)))
 
 
 t0 = datetime.datetime(1, 1, 1)
+
+
 def _convert_wacky_date_format(wacky_time):
     # The twinotter MASIN data is loaded in with a datetime coordinate but when this is
     # used on the interactive plot the value returned from the click is in days from the
@@ -200,5 +205,5 @@ def _convert_wacky_date_format(wacky_time):
     return t0 + datetime.timedelta(days=wacky_time) - datetime.timedelta(days=1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
