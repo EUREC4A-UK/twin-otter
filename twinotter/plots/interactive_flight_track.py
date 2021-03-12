@@ -20,7 +20,7 @@ import cartopy.crs as ccrs
 import pandas as pd
 
 from .. import load_flight
-from . import plot_flight_path
+from . import flight_path
 
 
 def main():
@@ -59,10 +59,12 @@ def start_gui(flight_data_path):
     ax1b.set_ylabel("Altitude (km)")
 
     # Plot flight path with colours for altitude
-    fig2, ax2 = plt.subplots(subplot_kw=dict(projection=ccrs.PlateCarree()),)
+    fig2, ax2 = plt.subplots(
+        subplot_kw=dict(projection=ccrs.PlateCarree()),
+    )
     ax2.gridlines(draw_labels=True)
     ax2.coastlines()
-    plot_flight_path(ax=ax2, ds=ds)
+    flight_path(ax=ax2, ds=ds)
 
     fig1.tight_layout()
     fig2.tight_layout()

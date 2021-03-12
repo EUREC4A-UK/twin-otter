@@ -142,6 +142,36 @@ def leg_times_as_datetime(legs, start):
     legs.End += start
 
 
+def extract_legs(ds, legs, leg_type, leg_idx=None):
+    """
+
+    Args:
+        ds (xarray.DataSet):
+        legs (pandas.DataFrame):
+        leg_type (str):
+        leg_idx (int):
+
+    Returns:
+        xarray.DataSet:
+
+    """
+    # All legs of the requested type
+    legs_matching = legs.loc[legs.Label == leg_type]
+
+    # If a single index is requested return that index of legs with the requested type
+    if leg_idx is not None:
+        leg = legs_matching.iloc[leg_idx]
+        return ds.sel(Time=slice(leg.Start, leg.End))
+
+    # Otherwise merge all legs with the requested type
+    else:
+        ds_matching = []
+        for idx, leg in legs_matching.iterrows():
+            ds_matching.append(ds.sel(Time=slice(leg.Start, leg.End)))
+
+        return xr.concat(ds_matching, dim="Time")
+
+
 def generate_file_path(
     flight_number, date, frequency=1, revision=1, flight_data_path=None
 ):

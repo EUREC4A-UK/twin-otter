@@ -78,7 +78,6 @@ def skewt(p, T, Td, u, v):
     # log scaling in Y, as dictated by the typical meteorological plot.
     skew.plot(p, T, "r")
     skew.plot(p, Td, "g")
-    skew.plot_barbs(p, u, v)
 
     # Calculate LCL height and plot as black dot. Because `p`'s first value is
     # ~1000 mb and its last value is ~250 mb, the `0` index is selected for
@@ -105,8 +104,8 @@ def skewt(p, T, Td, u, v):
     skew.plot_moist_adiabats()
     skew.plot_mixing_lines()
 
-    skew.ax.set_ylim(1000, 600)
-    skew.ax.set_xlim(0, 60)
+    skew.ax.set_ylim(1050, p.min())
+    skew.ax.set_xlim(-10, 30)
 
     return fig
 

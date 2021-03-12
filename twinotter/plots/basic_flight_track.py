@@ -38,7 +38,7 @@ def generate(flight_data_path, show_gui=False):
     fig.tight_layout()
 
     ds = load_flight(flight_data_path, debug=True)
-    plots.plot_flight_path(ax=ax, ds=ds)
+    plots.flight_path(ax=ax, ds=ds)
 
     fig = ax.figure
     caption = "created {} from {}".format(datetime.now(), ds.source_file)
