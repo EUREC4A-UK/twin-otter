@@ -107,7 +107,7 @@ def plot_leg(ds):
         axes[0].legend()
 
         axes[1].plot(ds.Time, derive.specific_humidity(ds))
-        add_labels(axes[1], "Specific Humidity")
+        axes[1].set_ylabel("Specific Humidity")
 
         figures.append([fig, "quicklook_LICOR"])
     except AttributeError:
