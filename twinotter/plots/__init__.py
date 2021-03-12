@@ -2,12 +2,13 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+from mpl_toolkits.mplot3d import Axes3D
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import xarray as xr
 
 
-def plot_flight_path(
+def flight_path(
     ax,
     ds,
     vmin=0,
@@ -46,6 +47,23 @@ def plot_flight_path(
         ax.text(ds.LON_OXTS[-1], ds.LAT_OXTS[-1], "F", transform=ccrs.PlateCarree())
 
     return
+
+
+def flight_path_3d(ds, ax=None):
+    if ax == None:
+        ax = plt.gca(projection="3d")
+
+    ax.plot(ds.LON_OXTS, ds.LAT_OXTS, zs=0, zdir="z", color="grey")
+
+    ax.plot(
+        ds.LON_OXTS, ds.ALT_OXTS, zs=ds.LAT_OXTS.max() + 0.1, zdir="y", color="grey"
+    )
+
+    ax.plot(
+        ds.LAT_OXTS, ds.ALT_OXTS, zs=ds.LON_OXTS.max() + 0.1, zdir="x", color="grey"
+    )
+
+    ax.plot(ds.LON_OXTS, ds.LAT_OXTS, ds.ALT_OXTS, color="k", lw=3, zorder=10)
 
 
 def colored_line_plot(

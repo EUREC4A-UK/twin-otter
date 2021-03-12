@@ -137,7 +137,7 @@ def overlay_flight_path_segment(ax, flight_data, time):
     end = time + goes.time_resolution
 
     # Plot the full flight path in a faded red
-    plots.plot_flight_path(
+    plots.flight_path(
         ax=ax,
         ds=flight_data,
         vmin=-10,
@@ -149,7 +149,7 @@ def overlay_flight_path_segment(ax, flight_data, time):
     )
 
     # Plot the +-10 mins of flight path normally
-    plots.plot_flight_path(
+    plots.flight_path(
         ax=ax,
         ds=flight_data.sel(Time=slice(start, end)),
         cmap="cool",
