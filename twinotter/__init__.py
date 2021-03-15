@@ -116,41 +116,46 @@ def load_segments(filename):
     Returns:
         dict:
     """
-
-    # Load the legs file and convert the times to timedeltas
-    # (Saved as the string representation of datetime.timedelta)
     with open(filename, "r") as data:
         segments = yaml.load(data, yaml.CLoader)
 
     return segments
 
 
-def extract_legs(ds, legs, leg_type, leg_idx=None):
+def _matching_segments(segments, segment_type):
+    return [seg for seg in segments["segments"] if segment_type in seg["kinds"]]
+
+
+def count_segments(segments, segment_type):
+    return len(_matching_segments(segments, segment_type))
+
+
+def extract_segments(ds, segments, segment_type, segment_idx=None):
     """
 
     Args:
         ds (xarray.DataSet):
-        legs (pandas.DataFrame):
-        leg_type (str):
-        leg_idx (int):
+        segments (dict):
+        segment_type (str):
+        segment_idx (int):
 
     Returns:
         xarray.DataSet:
 
     """
-    # All legs of the requested type
-    legs_matching = legs.loc[legs.Label == leg_type]
+    # All segments of the requested type
+    matching_segments = _matching_segments(segments, segment_type)
 
     # If a single index is requested return that index of legs with the requested type
-    if leg_idx is not None:
-        leg = legs_matching.iloc[leg_idx]
-        return ds.sel(Time=slice(leg.Start, leg.End))
+    if segment_idx is not None:
+        segment = matching_segments[segment_idx]
+        return ds.sel(Time=slice(segment["start"], segment["end"]))
 
     # Otherwise merge all legs with the requested type
     else:
         ds_matching = []
-        for idx, leg in legs_matching.iterrows():
-            ds_matching.append(ds.sel(Time=slice(leg.Start, leg.End)))
+        for segment in matching_segments:
+            ds_matching.append(ds.sel(Time=slice(segment["start"], segment["end"])))
 
         return xr.concat(ds_matching, dim="Time")
 

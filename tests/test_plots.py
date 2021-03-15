@@ -50,7 +50,7 @@ def test_vertical_profile_plot(mock_showfig, testdata):
 def test_heights_and_legs_plot(mock_savefig, testdata):
     twinotter.plots.heights_and_legs.generate(
         flight_data_path=testdata["flight_data_path"],
-        flight_segments_file=testdata["flight_legs_data_path"],
+        flight_segments_file=testdata["flight_segments_file"],
     )
     mock_savefig.assert_called_once()
 
@@ -59,23 +59,25 @@ def test_heights_and_legs_plot(mock_savefig, testdata):
 def test_quicklook_plot(mock_savefig, testdata):
     twinotter.quicklook.generate(
         flight_data_path=testdata["flight_data_path"],
-        flight_segments_file=testdata["flight_legs_data_path"],
+        flight_segments_file=testdata["flight_segments_file"],
     )
 
-    with open(testdata["flight_legs_data_path"]) as fh:
+    with open(testdata["flight_segments_file"]) as fh:
         file_content = fh.read()
-        n_legs = len(file_content.split("Leg")) - 1
-        n_profiles = len(file_content.split("Profile")) - 1
+        n_levels = len(file_content.split("level")) - 1
+        n_profiles = len(file_content.split("profile")) - 1
 
-    for n in range(n_legs):
-        fn_fig = "flight330_Leg{}_quicklook.png".format(n)
+        print(n_levels, n_profiles)
+
+    for n in range(n_levels):
+        fn_fig = "flight330_level{}_quicklook.png".format(n)
         mock_savefig.assert_any_call(fn_fig)
 
-        fn_fig = "flight330_Leg{}_paluch.png".format(n)
+        fn_fig = "flight330_level{}_paluch.png".format(n)
         mock_savefig.assert_any_call(fn_fig)
 
     for n in range(n_profiles):
-        fn_fig = "flight330_Profile{}_skewt.png".format(n)
+        fn_fig = "flight330_profile{}_skewt.png".format(n)
         mock_savefig.assert_any_call(fn_fig)
 
 

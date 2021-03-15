@@ -73,7 +73,7 @@ def testdata(scope="session"):
         flight_data_file=str(
             flight_data_path / "MASIN" / "core_masin_20200124_r004_flight330_1hz.nc"
         ),
-        flight_legs_data_path=str(testdata_dir /
+        flight_segments_file=str(testdata_dir /
                                   "EUREC4A_TO_Flight-Segments_20200124a_0.1.yaml"),
         goes_path=str(p_root / "goes"),
         goes_time=datetime.datetime(year=2020, month=1, day=24, hour=14, minute=0,),
