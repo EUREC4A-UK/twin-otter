@@ -127,17 +127,29 @@ def _matching_segments(segments, segment_type):
 
 
 def count_segments(segments, segment_type):
+    """Return the number of flight segments of the requested segment_type
+
+    Args:
+        segments (dict): Flight segments description from load_segments
+        segment_type (str): The label of a segment type
+
+    Returns:
+        int:
+
+    """
     return len(_matching_segments(segments, segment_type))
 
 
 def extract_segments(ds, segments, segment_type, segment_idx=None):
-    """
+    """Extract a subset of the given dataset with the segments requested
 
     Args:
-        ds (xarray.DataSet):
-        segments (dict):
-        segment_type (str):
-        segment_idx (int):
+        ds (xarray.DataSet): Flight dataset
+        segments (dict): Flight segments description from load_segments
+        segment_type (str): The label of a segment type
+        segment_idx (int): The index of the segment within the flight (starts at zero)
+            If the default of None is given then the returned dataset will contain all
+            matching segments concatenated.
 
     Returns:
         xarray.DataSet:
