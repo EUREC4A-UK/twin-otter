@@ -32,11 +32,12 @@ def generate(flight_data_path, flight_segments_file, show_gui=False, output_path
 
     # Produce the basic time-height plot
     fig, ax1 = plt.subplots()
-    ax1.plot(ds.Time, ds.ROLL_OXTS, color="k", linestyle="--", alpha=0.1)
-    ax1.set_ylabel("Roll Angle")
     ax2 = ax1.twinx()
-    ax2.plot(ds.Time, ds.ALT_OXTS / 1000, color="k", alpha=0.5)
-    ax2.set_ylabel("Altitude (km)")
+    ax1.plot(ds.Time, ds.ALT_OXTS / 1000, color="k", alpha=0.5)
+    ax1.set_ylabel("Altitude (km)")
+
+    ax2.plot(ds.Time, ds.ROLL_OXTS, color="k", linestyle="--", alpha=0.1)
+    ax2.set_ylabel("Roll Angle")
 
     # For each segment overlay a coloured line onto the time-height plot
     for segment in tqdm(segments["segments"]):
@@ -55,7 +56,7 @@ def generate(flight_data_path, flight_segments_file, show_gui=False, output_path
                 if segment_type in segment["kinds"]:
                     color = colors[segment_type]
 
-        ax2.plot(
+        ax1.plot(
             ds_section.Time,
             ds_section.ALT_OXTS / 1000,
             linestyle=linestyle,
@@ -64,12 +65,12 @@ def generate(flight_data_path, flight_segments_file, show_gui=False, output_path
             alpha=0.75,
         )
 
-    if hasattr(ax2, "secondary_yaxis"):
+    if hasattr(ax1, "secondary_yaxis"):
         # `ax.secondary_yaxis` was added in matplotlib v3.1
-        ax2_fl = ax2.secondary_yaxis(
-            location=1.2, functions=(lambda y: (y * 1000 * 3.281) / 100, lambda x: x)
+        ax1_fl = ax1.secondary_yaxis(
+            location=-0.15, functions=(lambda y: (y * 1000 * 3.281) / 100, lambda x: x)
         )
-        ax2_fl.set_ylabel(r"Flight level [100ft]")
+        ax1_fl.set_ylabel(r"Flight level [100ft]")
 
     for label in ax1.get_xmajorticklabels():
         label.set_rotation(30)
