@@ -67,8 +67,6 @@ def test_quicklook_plot(mock_savefig, testdata):
         n_levels = len(file_content.split("level")) - 1
         n_profiles = len(file_content.split("profile")) - 1
 
-        print(n_levels, n_profiles)
-
     for n in range(n_levels):
         fn_fig = "flight330_level{}_quicklook.png".format(n)
         mock_savefig.assert_any_call(fn_fig)
