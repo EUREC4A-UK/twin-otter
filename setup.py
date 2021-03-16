@@ -11,7 +11,7 @@ requirements = [
     "matplotlib",
     "pandas",
     "metpy>=1.0",
-    "cartopy<=0.17",
+    "cartopy",
     "parse",
     "tqdm",
     "cftime",
