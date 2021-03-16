@@ -112,7 +112,10 @@ def _pint_to_xarray(quantity, ds, name):
         coords=ds.coords,
         dims=ds.dims,
         name=name,
-        attrs=dict(long_name=name, units=quantity.units.format_babel(),),
+        attrs=dict(
+            long_name=name,
+            units=quantity.units.format_babel(),
+        ),
         indexes=ds.indexes,
     )
 
@@ -121,7 +124,8 @@ def _pint_to_xarray(quantity, ds, name):
 # them and arguments required as input to those functions
 available = dict(
     air_temperature=dict(
-        function=combine_temperatures, arguments=["TAT_ND_R", "TAT_DI_R"],
+        function=combine_temperatures,
+        arguments=["TAT_ND_R", "TAT_DI_R"],
     ),
     air_potential_temperature=dict(
         function=metpy.calc.potential_temperature,

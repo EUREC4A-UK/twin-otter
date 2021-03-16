@@ -22,8 +22,12 @@ def main():
     argparser.add_argument("--output_path", default=None)
     args = argparser.parse_args()
 
-    generate(args.flight_data_path, args.flight_segments_file,
-             show_gui=args.show_gui, output_path=args.output_path)
+    generate(
+        args.flight_data_path,
+        args.flight_segments_file,
+        show_gui=args.show_gui,
+        output_path=args.output_path,
+    )
 
 
 def generate(flight_data_path, flight_segments_file, show_gui=False, output_path=None):
@@ -80,7 +84,9 @@ def generate(flight_data_path, flight_segments_file, show_gui=False, output_path
         plt.show()
     else:
         if output_path is None:
-            output_path = Path(flight_data_path) / "figures" / "height-time-with-legs.png"
+            output_path = (
+                Path(flight_data_path) / "figures" / "height-time-with-legs.png"
+            )
         else:
             output_path = Path(output_path)
 

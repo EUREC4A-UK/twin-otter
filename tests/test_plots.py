@@ -23,7 +23,8 @@ def test_basic_flight_path(mock_savefig, testdata):
 
 def test_flight_track_frame(testdata):
     ds = twinotter.external.goes.load_nc(
-        path=testdata["goes_path"], time=testdata["goes_time"],
+        path=testdata["goes_path"],
+        time=testdata["goes_time"],
     )
     fig, ax = twinotter.plots.flight_track_frames.make_frame(ds)
 
