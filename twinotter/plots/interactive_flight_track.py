@@ -193,16 +193,18 @@ def find_nearest_point(value, points):
     return int(np.argmin(np.abs(value - points)))
 
 
-t0 = datetime.datetime(1, 1, 1)
+# Zeroth datetime in twinotter MASIN files
+# TODO: This is not the same as the first files we had because it was updated to be
+# consistent with EUREC4A. We should be able to read this from the file/dataset rather
+# than assume it
+t0 = datetime.datetime(1970, 1, 1)
 
 
 def _convert_wacky_date_format(wacky_time):
     # The twinotter MASIN data is loaded in with a datetime coordinate but when this is
     # used on the interactive plot the value returned from the click is in days from the
     # "zeroth" datetime. Use this zeroth datetime (t0) to get the date again.
-    # The zeroth datetime is also for day=0 but this can't be handled by datetime so
-    # we also have to subtract 1 day from the result
-    return t0 + datetime.timedelta(days=wacky_time) - datetime.timedelta(days=1)
+    return t0 + datetime.timedelta(days=wacky_time)
 
 
 if __name__ == "__main__":
