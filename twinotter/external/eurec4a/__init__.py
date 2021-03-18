@@ -135,6 +135,19 @@ flight_segs_urls = dict(
 
 
 def load_segments(flight_number, platform="TO"):
+    """Load flight segments yaml file from EUREC4A github repository
+
+    See https://github.com/eurec4a/flight-phase-separation
+
+    Args:
+        flight_number (int):
+        platform (str): The short name for the platforms used in EUREC4A. Currently
+            either "TO", "HALO", or "P3".
+
+    Returns:
+        dict:
+
+    """
     yaml_file = requests.get(flight_segs_urls[platform][flight_number]).text
 
     return yaml.safe_load(yaml_file)
