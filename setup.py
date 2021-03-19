@@ -11,13 +11,14 @@ requirements = [
     "matplotlib",
     "pandas",
     "metpy>=1.0",
-    "cartopy<=0.17",
+    "cartopy",
     "parse",
     "tqdm",
     "cftime",
     "worldview_dl",
     "docopt",
     "netcdf4",
+    "pyyaml",
 ]
 
 setup_requirements = []
@@ -58,5 +59,5 @@ setuptools.setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="",
-    version="0.2.2",
+    version="0.3.0",
 )

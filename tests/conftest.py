@@ -19,6 +19,7 @@ GOES_TESTDATA_URL = (
 
 # A testdata folder in this directory
 testdata_dir = Path(__file__).parent / "testdata"
+testdata_twinotter_dir = testdata_dir / "obs"
 testdata_goes_dir = testdata_dir / "goes"
 
 
@@ -43,8 +44,8 @@ def download_goes_testdata():
 @pytest.fixture
 def testdata(scope="session"):
     # Download testdata if it is not there yet
-    if not testdata_dir.exists():
-        testdata_dir.mkdir()
+    if not testdata_twinotter_dir.exists():
+        testdata_twinotter_dir.mkdir()
         download_testdata()
 
     if not testdata_goes_dir.exists():
@@ -72,9 +73,17 @@ def testdata(scope="session"):
         flight_data_file=str(
             flight_data_path / "MASIN" / "core_masin_20200124_r004_flight330_1hz.nc"
         ),
-        flight_legs_data_path=str(flight_data_path / "flight330-legs.csv"),
+        flight_segments_file=str(
+            testdata_dir / "EUREC4A_TO_Flight-Segments_20200124a_0.1.yaml"
+        ),
         goes_path=str(p_root / "goes"),
-        goes_time=datetime.datetime(year=2020, month=1, day=24, hour=14, minute=0,),
+        goes_time=datetime.datetime(
+            year=2020,
+            month=1,
+            day=24,
+            hour=14,
+            minute=0,
+        ),
     )
 
 

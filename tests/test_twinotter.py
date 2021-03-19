@@ -33,3 +33,21 @@ def test_load_flight_empty_fails(testdata_empty):
     with pytest.raises(FileNotFoundError):
         twinotter.load_flight(flight_data_path=testdata_empty["flight_data_path"])
     return
+
+
+def test_load_segments(testdata):
+    flight_segments = twinotter.load_segments(testdata["flight_segments_file"])
+
+
+def test_count_segments(testdata):
+    flight_segments = twinotter.load_segments(testdata["flight_segments_file"])
+    assert twinotter.count_segments(flight_segments, "level") == 10
+    assert twinotter.count_segments(flight_segments, "profile") == 7
+
+
+def test_extract_segments(testdata):
+    ds = twinotter.load_flight(flight_data_path=testdata["flight_data_path"])
+    flight_segments = twinotter.load_segments(testdata["flight_segments_file"])
+
+    ds_segs = twinotter.extract_segments(ds, flight_segments, "level")
+    assert len(ds_segs.Time) == 5684

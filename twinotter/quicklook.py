@@ -1,11 +1,12 @@
-"""Quicklook plots for each leg over a single flight.
+"""Quicklook plots for each segment over a single flight.
 
-Use the flight-legs csv produced from :mod:`twinotter.plots.interactive_flight_track`
+Use the flight-segments .yaml produced from
+:mod:`twinotter.plots.interactive_flight_track`
 
 
 Usage::
 
-    $ python -m twinotter.quicklook <flight_data_path> <flight_legs>
+    $ python -m twinotter.quicklook <flight_data_path> <flight_segments_file>
 
 """
 
@@ -17,7 +18,7 @@ import scipy.constants
 import metpy.calc
 from metpy.units import units
 
-from . import load_flight, load_legs, leg_times_as_datetime, derive, extract_legs
+from . import load_flight, load_segments, count_segments, extract_segments, derive
 from .plots import vertical_profile
 
 
@@ -26,41 +27,43 @@ def main():
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("flight_data_path")
-    argparser.add_argument("legs_file")
+    argparser.add_argument("flight_segments_file")
 
     args = argparser.parse_args()
 
-    generate(flight_data_path=args.flight_data_path, legs_file=args.legs_file)
+    generate(
+        flight_data_path=args.flight_data_path,
+        flight_segments_file=args.flight_segments_file,
+    )
 
     return
 
 
-def generate(flight_data_path, legs_file):
+def generate(flight_data_path, flight_segments_file):
     ds = load_flight(flight_data_path)
-    legs = load_legs(legs_file)
-    leg_times_as_datetime(legs, ds.Time[0].dt.floor("D").data)
+    flight_segments = load_segments(flight_segments_file)
 
     # Quicklook plots for the full flight
-    figures = plot_leg(ds)
+    figures = plot_level(ds)
     savefigs(figures, ds.attrs["flight_number"], "", "")
 
-    plot_individual_phases(ds, legs, "Leg", plot_leg)
-    plot_individual_phases(ds, legs, "Profile", plot_profile)
+    plot_individual_phases(ds, flight_segments, "level", plot_level)
+    plot_individual_phases(ds, flight_segments, "profile", plot_profile)
 
     # Make a combined plot of all profiles
-    profiles = extract_legs(ds, legs, "Profile")
+    profiles = extract_segments(ds, flight_segments, "profile")
     figures = plot_profile(profiles)
     savefigs(figures, ds.attrs["flight_number"], "profile", "_combined")
 
 
-def plot_individual_phases(ds, legs, leg_type, plot_func):
-    for n in range(legs["Label"].value_counts()[leg_type]):
-        ds_section = extract_legs(ds, legs, leg_type, n)
+def plot_individual_phases(ds, flight_segments, segment_type, plot_func):
+    for n in range(count_segments(flight_segments, segment_type)):
+        ds_section = extract_segments(ds, flight_segments, segment_type, n)
         figures = plot_func(ds_section)
-        savefigs(figures, ds.attrs["flight_number"], leg_type, n)
+        savefigs(figures, ds.attrs["flight_number"], segment_type, n)
 
 
-def plot_leg(ds):
+def plot_level(ds):
     figures = []
 
     fig, axes = plt.subplots(nrows=5, ncols=1, sharex="all", figsize=[16, 15])

@@ -1,6 +1,8 @@
 """Functionality related to the EUREC4A field campaign from 2020
 """
 
+import requests
+import yaml
 import cartopy.crs as ccrs
 import matplotlib.patches as mpatches
 
@@ -59,3 +61,93 @@ def add_halo_circle(ax, color=colors["HALO"], alpha=0.3, **kwargs):
             **kwargs
         )
     )
+
+
+TO_segs_url = (
+    "https://raw.githubusercontent.com/"
+    "EUREC4A-UK/flight-phase-separation/twinotter/"
+    "flight_phase_files/TO/EUREC4A_TO_Flight-Segments_{}_0.1.yaml"
+)
+segs_url = (
+    "https://raw.githubusercontent.com/"
+    "eurec4a/flight-phase-separation/master/"
+    "flight_phase_files/"
+)
+
+HALO_flight_numbers = [
+    119,
+    122,
+    124,
+    126,
+    128,
+    130,
+    131,
+    202,
+    205,
+    207,
+    209,
+    211,
+    213,
+    215,
+    218,
+]
+
+P3_flight_numbers = [117, 119, 123, 124, 131, 203, 204, 205, 209, 210, 211]
+flight_segs_urls = dict(
+    TO={
+        330: TO_segs_url.format("20200124a"),
+        331: TO_segs_url.format("20200124b"),
+        332: TO_segs_url.format("20200126a"),
+        333: TO_segs_url.format("20200126b"),
+        334: TO_segs_url.format("20200128a"),
+        335: TO_segs_url.format("20200128b"),
+        336: TO_segs_url.format("20200130a"),
+        337: TO_segs_url.format("20200131a"),
+        338: TO_segs_url.format("20200131b"),
+        339: TO_segs_url.format("20200202a"),
+        340: TO_segs_url.format("20200205a"),
+        341: TO_segs_url.format("20200205b"),
+        342: TO_segs_url.format("20200206a"),
+        343: TO_segs_url.format("20200207a"),
+        344: TO_segs_url.format("20200207b"),
+        345: TO_segs_url.format("20200209a"),
+        346: TO_segs_url.format("20200209b"),
+        347: TO_segs_url.format("20200210a"),
+        348: TO_segs_url.format("20200211a"),
+        349: TO_segs_url.format("20200211b"),
+        350: TO_segs_url.format("20200213a"),
+        351: TO_segs_url.format("20200213b"),
+        352: TO_segs_url.format("20200214a"),
+        353: TO_segs_url.format("20200215a"),
+        354: TO_segs_url.format("20200215b"),
+    },
+    HALO={
+        flight_number: segs_url
+        + "HALO/EUREC4A_HALO_Flight-Segments_20200{}.yaml".format(flight_number)
+        for flight_number in HALO_flight_numbers
+    },
+    P3={
+        flight_number: segs_url
+        + "P3/EUREC4A_ATOMIC_P3_Flight-segments_20200{}_v0.5.yaml".format(flight_number)
+        for flight_number in P3_flight_numbers
+    },
+)
+
+
+def load_segments(flight_number, platform="TO"):
+    """Load flight segments yaml file from EUREC4A github repository
+
+    See https://github.com/eurec4a/flight-phase-separation
+
+    Args:
+        flight_number (int):
+        platform (str): The short name for the platforms used in EUREC4A. Currently
+            either "TO", "HALO", or "P3".
+
+    Returns:
+        dict:
+
+    """
+    yaml_file = requests.get(flight_segs_urls[platform][flight_number]).text
+
+    return yaml.safe_load(yaml_file)

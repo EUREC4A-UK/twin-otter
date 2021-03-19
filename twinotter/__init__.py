@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-import pandas as pd
+import yaml
 import xarray as xr
 
 
@@ -107,67 +107,67 @@ def open_masin_dataset(filename, meta, debug=False):
     return ds
 
 
-def load_legs(filename):
-    """Read a legs file created with twinotter.plots.interactive_flight_track
+def load_segments(filename):
+    """Read a segments yaml file created with twinotter.plots.interactive_flight_track
 
     Args:
         filename (str):
 
     Returns:
-        pandas.DataFrame:
+        dict:
     """
+    with open(filename, "r") as data:
+        segments = yaml.load(data, yaml.CLoader)
 
-    # Load the legs file and convert the times to timedeltas
-    # (Saved as the string representation of datetime.timedelta)
-    legs = pd.read_csv(
-        filename, parse_dates=["Start", "End"], date_parser=pd.to_timedelta
-    )
-
-    return legs
+    return segments
 
 
-def leg_times_as_datetime(legs, start):
-    """Convert the times of the legs from timedelta to datetime
+def _matching_segments(segments, segment_type):
+    return [seg for seg in segments["segments"] if segment_type in seg["kinds"]]
 
-    By default the legs labelled in twinotter.plots.interactive_flight_track are
-    timedeltas taken from when the files had time in units of seconds since the start of
-    the day. So we just need to add back on the start time (i.e. a datetime.datetime)
-    of the start of the day.
+
+def count_segments(segments, segment_type):
+    """Return the number of flight segments of the requested segment_type
 
     Args:
-        legs (pandas.DataFrame):
-        start (datetime.datetime:
+        segments (dict): Flight segments description from load_segments
+        segment_type (str): The label of a segment type
+
+    Returns:
+        int:
+
     """
-    legs.Start += start
-    legs.End += start
+    return len(_matching_segments(segments, segment_type))
 
 
-def extract_legs(ds, legs, leg_type, leg_idx=None):
-    """
+def extract_segments(ds, segments, segment_type, segment_idx=None):
+    """Extract a subset of the given dataset with the segments requested
 
     Args:
-        ds (xarray.DataSet):
-        legs (pandas.DataFrame):
-        leg_type (str):
-        leg_idx (int):
+        ds (xarray.DataSet): Flight dataset
+        segments (dict): Flight segments description from load_segments
+        segment_type (str): The label of a segment type
+        segment_idx (int): The index of the segment within the flight (starts at zero)
+            If the default of None is given then the returned dataset will contain all
+            matching segments concatenated.
 
     Returns:
         xarray.DataSet:
 
     """
-    # All legs of the requested type
-    legs_matching = legs.loc[legs.Label == leg_type]
+    # All segments of the requested type
+    matching_segments = _matching_segments(segments, segment_type)
 
     # If a single index is requested return that index of legs with the requested type
-    if leg_idx is not None:
-        leg = legs_matching.iloc[leg_idx]
-        return ds.sel(Time=slice(leg.Start, leg.End))
+    if segment_idx is not None:
+        segment = matching_segments[segment_idx]
+        return ds.sel(Time=slice(segment["start"], segment["end"]))
 
     # Otherwise merge all legs with the requested type
     else:
         ds_matching = []
-        for idx, leg in legs_matching.iterrows():
-            ds_matching.append(ds.sel(Time=slice(leg.Start, leg.End)))
+        for segment in matching_segments:
+            ds_matching.append(ds.sel(Time=slice(segment["start"], segment["end"])))
 
         return xr.concat(ds_matching, dim="Time")
 
