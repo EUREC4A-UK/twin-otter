@@ -1,8 +1,10 @@
+from importlib import reload
 from pathlib import Path
 import re
 
 import yaml
 import xarray as xr
+import xarray.conventions
 
 
 # netCDF naming: core_masin_YYYYMMDD_rNNN_flightNNN_Nhz.nc
@@ -38,6 +40,10 @@ def _monkey_patch_xr_load():
         return _decode_variables_old(variables, *args, **kwargs)
 
     xr.conventions.decode_cf_variables = _decode_cf_variables
+
+
+def _unpatch_xr_load():
+    reload(xarray.conventions)
 
 
 def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=False):
@@ -89,6 +95,8 @@ def load_flight(flight_data_path, frequency=1, revision="most_recent", debug=Fal
 def open_masin_dataset(filename, meta, debug=False):
     _monkey_patch_xr_load()
     ds = xr.open_dataset(filename, decode_cf=True)
+    _unpatch_xr_load()
+
     if debug:
         print("Loaded {}".format(filename))
 
