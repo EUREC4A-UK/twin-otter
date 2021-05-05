@@ -24,7 +24,8 @@ def test_load_flight(testdata, load_from, revision):
 
     # Check that there are no NaNs left in the dataset
     # Awkward syntax because xarray.DataArray.any returns an array
-    assert False in np.isnan(ds.Time).any()
+    # Numpy now has it's own bool type so we have to use "==" rather than "is"
+    assert np.isnan(ds.Time.values).any() == False
 
     return
 
