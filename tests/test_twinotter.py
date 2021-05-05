@@ -1,6 +1,7 @@
 import pytest
 
 import numpy as np
+import pandas as pd
 
 import twinotter
 
@@ -25,7 +26,9 @@ def test_load_flight(testdata, load_from, revision):
     # Check that there are no NaNs left in the dataset
     # Awkward syntax because xarray.DataArray.any returns an array
     # Numpy now has it's own bool type so we have to use "==" rather than "is"
-    assert np.isnan(ds.Time.values).any() == False
+    # Using pd.isnull because np.isnan doesn't work on object arrays
+    # - https://stackoverflow.com/a/36001191/8270394
+    assert pd.isnull(ds.Time.values).any() == False
 
     return
 
